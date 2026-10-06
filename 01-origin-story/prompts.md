@@ -24,6 +24,24 @@ prompt library built from your own questions.
 
 ### 1.
 
+what should I be doing first to fix the broken release?
+
 ### 2.
 
+What's contradictory or missing, not just in the company documents, but across everything in 00-rook?
+
 ### 3.
+
+what data do I have available to me now to help me figure out these answers
+
+### 4.
+
+is there anything I need to know about competitors or the competitive landscape?
+
+### 5.
+
+who should I interview?  what signals should I be looking at on a regular basis?
+
+### 6.
+
+create a project plan for me

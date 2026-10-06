@@ -24,4 +24,60 @@ teaching scenario.
 
 ## Working context
 
-_You'll fill this in during Module 1._
+I am the new PM for Rook Dispatch, taking over from Priya Raghunathan (left 21 Aug 2026, no overlap). Sources: Priya's handoff doc (`00-rook/company/notes/handoff-from-priya.docx`) and the Rook wiki (read via the rook-wiki connector). Today is early Oct 2026.
+
+### Company and products
+- Rook Industries, founded 2014, 241 staff, HQ at Site Aleph (ice shelf, twice-weekly transport, mostly remote). Offices in Berlin and Singapore (plus a lighthouse in Cornwall).
+- Customers are independent masked responders and their handlers and quartermasters. Rook employs no responders. Revenue is subscription, per active responder.
+- Monthly release train, 4.x numbering. Support has three tiers; tickets filed mid-callout skip the queue.
+- **Rook Dispatch (mine, release 4.2):** ranks available responders for an incident, pings the top one's phone, they take it or not, else it moves down the list. Handlers use the web console; responders use the phone app. Routing config ships in the release, not as a runtime setting.
+- **Rook Supply (4.2):** gear requisitions, quartermaster approval, maintenance schedules, field failure reports.
+- **Dispatch to Supply dependency:** Supply reads the Responder Availability Record, which Dispatch writes, and books maintenance into low callout-load windows. Any change to how Dispatch calculates availability or callout load changes Supply's scheduling with no Supply-side change.
+
+### Hard rules from the wiki
+- Never store or infer responder legal identity. Cover identities are never mapped in production (Security Policy 4.1). Do not design features that assume a mapping, and do not try to work out who anyone is.
+
+### People (Dispatch)
+| Name | Role | Notes |
+| --- | --- | --- |
+| Helen Achebe | Director of Product (my boss) | Owns roadmap and commitments. Gives room. |
+| Marcus Oyelaran | Eng Manager, Dispatch | Site Aleph. Priya's first call for anything uncertain. |
+| Wen Li | Staff Engineer | Berlin. Built the ping-ranking logic. No doc exists, so ask her. Was away 14-24 Aug, i.e. right after 4.2 shipped. |
+| Nadia Hoffmann | Support Lead | Berlin. Hears handler complaints first. Worth a standing 15 minutes. |
+| Ravi Menon | Data Analyst | Singapore. Owns the weekly acceptance-rate report. |
+| Sofia Marino | Product Designer | Console and phone app. Ran the September interviews (not yet read). |
+
+Priya's doc says Marcus pulls numbers; the directory says Ravi owns them. Try Ravi first for metrics.
+
+### Vocabulary
+- **Callout:** request for a responder to attend an incident. **Ping:** a callout offered to one responder. **Taken / turned down / missed:** the three outcomes. Turned down and missed both pass it on but are recorded separately.
+- **Ping wait:** seconds before an unanswered ping counts as missed. Same for everyone, set in the release.
+- **Routing priority:** score ranking responders. Inputs: proximity (travel-time estimate), availability, capability match, recent acceptance history. Turning down or missing a ping lowers recent acceptance, which lowers later rank.
+- **Acceptance rate:** pings taken / pings sent. Headline metric, reported weekly in aggregate. **Time-to-accept:** median seconds from ping to taken.
+- **Coverage gap:** no available responder had the required capability tags. Not the same as low acceptance (nobody could go vs nobody would).
+- **Capability tags:** flight, structural-entry, hazmat-tolerant, cold-weather, aquatic, crowd-management, de-escalation.
+- **Mutual aid:** cross-area cover between responders. Not supported, on the Q4 list.
+
+### Release history (Dispatch)
+- 4.0 (7 Apr): new console nav, responder profile redesign, routing-override audit log.
+- 4.1 (16 Jun): travel-time proximity, bulk callout, push delivery reliability.
+- 4.2 (12 Aug): proximity weighted up vs recent acceptance, ping wait cut 90s to 60s, console filters persist, three fixes.
+
+### Where things stand
+1. **Acceptance has dropped since 4.2 and handler complaints are up.** Two changes shipped together (ranking and ping wait cut), on top of a seasonal August dip. Priya's view is mostly seasonal, back in September, and she urged against reverting 4.2 (proximity was a three-quarter-old responder ask). That is her read, not a measured result. Nothing in these sources shows September numbers, so check with Ravi before accepting or rejecting it.
+2. **Possible compounding effect (my inference, untested):** a shorter ping wait should raise "missed" counts, and misses lower recent-acceptance scores, which lowers rank. Worth checking whether the drop is partly self-reinforcing.
+3. **Roadmap is stale.** Q3 roadmap was last reviewed 30 Jun. It lists *Availability Confidence* as committed for 4.2, but it is absent from the 4.2 release notes. Priya said a couple of items were squeezed out and the conversation with Helen about which are still Q3 commitments has not happened. Needs to happen soon.
+4. **Other roadmap items:** Requisition approval chains (Supply, committed for 4.3); Handler phone app and Shared cover between responders (both Q4, exploring). Committed items go through Product to change, not directly.
+5. **Known noise:** console filter persistence will generate cosmetic tickets. Do not let it eat the first month.
+6. **Debt:** no written description of how ping ranking works. Priya asked me to write it, with Wen Li.
+
+### Where to look
+- Wiki: Company page (About Rook, Rook Dispatch, Rook Supply, Glossary, Team directory, Releases, Q3 roadmap).
+- A rook-database connector is also available (not yet explored; likely the source for acceptance data).
+- Priya's last line of advice: I arrive with no attachment to past decisions, and that advantage fades, so use it in month one.
+
+- Session 1 (6 Oct 2026) findings. Database (29 Jun to 6 Sep): missed pings went from about 2% to 21.5% in the week of 12 Aug, turn-downs did not rise, and misses are concentrated in a few responders (The Undertow, Farlight, Meteor Mite, Vesper) who now get far fewer pings. Pings per callout: 1.23 before 4.2, 1.39 after.
+- Code (`00-rook/code/dispatch-routing/`, stubs only): a miss costs the same as a turn-down (-0.12) against +0.08 for a yes, with no decay (2019 TODO). This supports the feedback loop with the 60s wait. Ranking weights moved 0.45/0.40 to 0.60/0.25 in 4.2.
+- Wiki and handoff have nothing on competitors or churn. The wiki says "monthly" releases but 4.0 to 4.2 took 8 to 10 weeks, and no 4.3 is listed.
+- Plan is in `00-rook/project-plan.md`. Proposed default: restore ping wait to 90s alone, measure two weeks, decision by 16 Oct. Draft message to Marcus on this was written, not sent.
+- Still open: data after 6 Sep (ask Ravi), Sofia's September interview notes, why 60s was chosen, what Availability Confidence was, and the definition of an active responder.

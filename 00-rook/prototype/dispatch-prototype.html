@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rook Dispatch Prototype</title>
+<style>
+:root{
+  --bg:#f4f5f7; --panel:#fff; --ink:#1b1f24; --mute:#6a727c; --line:#dfe3e8;
+  --accent:#2b5fd9; --ok:#1d7a46; --warn:#b26a00; --bad:#b3261e; --chip:#eef1f6;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#14171b; --panel:#1d2127; --ink:#e8ebef; --mute:#97a0ab; --line:#2f353d;
+    --accent:#6b93f2; --ok:#4cc17f; --warn:#e3a13c; --bad:#f2786f; --chip:#272d35;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+header h1{font-size:16px;margin:0}
+header .note{color:var(--mute);font-size:12px}
+.ctl{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--mute)}
+select,button,input{font:inherit;color:inherit}
+select,input[type=text]{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 12px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;padding:20px;align-items:start}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chip{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 9px;font-size:12px;cursor:default}
+.chip.on{background:var(--accent);color:#fff}
+.chip.sel{cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--mute);font-weight:600;padding:4px 6px;border-bottom:1px solid var(--line)}
+td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.pinged td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+tr.unavail td{opacity:.5}
+.bar{height:6px;background:var(--chip);border-radius:3px;width:70px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.st{font-size:12px;font-weight:600}
+.st.taken{color:var(--ok)} .st.declined,.st.missed{color:var(--bad)} .st.pinged{color:var(--accent)} .st.queued{color:var(--mute)}
+.banner{padding:8px 12px;border-radius:8px;margin-bottom:10px;font-size:13px}
+.banner.ok{background:color-mix(in srgb,var(--ok) 15%,transparent)}
+.banner.bad{background:color-mix(in srgb,var(--bad) 15%,transparent)}
+.banner.warn{background:color-mix(in srgb,var(--warn) 18%,transparent)}
+.kpis{display:flex;gap:18px;flex-wrap:wrap}
+.kpi b{display:block;font-size:20px}
+.kpi span{font-size:11px;color:var(--mute)}
+.log{max-height:150px;overflow:auto;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.log div{padding:2px 0;border-bottom:1px dotted var(--line)}
+.small{font-size:12px;color:var(--mute)}
+/* phone */
+.phone{width:340px;margin:0 auto;border:10px solid #222;border-radius:36px;background:var(--panel);overflow:hidden;min-height:620px;display:flex;flex-direction:column}
+.phone .status{background:#222;color:#aaa;font-size:11px;padding:0 18px 6px;display:flex;justify-content:space-between}
+.phone .body{padding:18px;flex:1;display:flex;flex-direction:column}
+.phone h3{margin:0 0 4px;font-size:18px}
+.ring{width:120px;height:120px;border-radius:50%;margin:14px auto;display:grid;place-items:center;font-size:30px;font-weight:700}
+.big{width:100%;padding:14px;font-size:16px;border-radius:10px;margin-top:8px}
+.big.take{background:var(--ok);border-color:var(--ok);color:#fff}
+.big.decline{background:transparent}
+.sw{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);margin-top:auto}
+.caption{text-align:center;color:var(--mute);font-size:12px;margin:8px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Rook Dispatch &middot; prototype</h1>
+  <span class="note">Fictional scenario. Cover names only; no identity data. Scoring uses the 4.2 constants from config.py.</span>
+  <label class="ctl">Ping wait
+    <select id="wait"><option value="60">60s (4.2)</option><option value="90">90s (4.1)</option></select>
+  </label>
+  <label class="ctl">Clock speed
+    <select id="speed"><option value="1">1x</option><option value="3" selected>3x</option><option value="10">10x</option></select>
+  </label>
+  <label class="ctl"><input type="checkbox" id="auto"> Simulate other responders</label>
+  <button id="reset">Reset demo</button>
+</header>
+
+<main>
+  <section id="console">
+    <div class="card">
+      <h2>Handler console &middot; new callout</h2>
+      <div class="row" style="margin-bottom:8px">
+        <label class="ctl">Incident
+          <select id="incident"></select>
+        </label>
+      </div>
+      <div class="row" id="needChips" style="margin-bottom:10px"></div>
+      <div class="row">
+        <button class="primary" id="send">Send callout</button>
+        <label class="ctl"><input type="checkbox" id="filterMatch"> Only show responders matching required tags (remembered)</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="banner"></div>
+      <div class="row" style="justify-content:space-between">
+        <h2 id="coTitle">Active callout</h2>
+        <div class="kpis">
+          <div class="kpi"><b id="kPings">0</b><span>pings this callout</span></div>
+          <div class="kpi"><b id="kTaken">0</b><span>taken (session)</span></div>
+          <div class="kpi"><b id="kDown">0</b><span>turned down</span></div>
+          <div class="kpi"><b id="kMiss">0</b><span>missed</span></div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>Responder</th><th>Tags</th><th>Travel</th><th>Recent acc.</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+        <tbody id="rank"></tbody>
+      </table>
+      <p class="small" id="formula"></p>
+    </div>
+
+    <div class="card">
+      <h2>Routing audit log</h2>
+      <div class="log" id="log"></div>
+    </div>
+  </section>
+
+  <section id="phoneCol">
+    <h2 style="text-align:center">Responder phone app</h2>
+    <div class="row" style="justify-content:center;margin-bottom:8px">
+      <label class="ctl">Viewing as
+        <select id="viewAs"></select>
+      </label>
+    </div>
+    <div class="phone">
+      <div class="status"><span>Rook</span><span id="clock">--:--</span></div>
+      <div class="body" id="phoneBody"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// ---- constants mirrored from 00-rook/code/dispatch-routing/config.py (4.2) ----
+const W_PROX = 0.60, W_ACC = 0.25, W_CAP = 0.15;
+const CREDIT = 0.08, PENALTY = 0.12, HORIZON = 45;
+const TAGS = ['flight','structural-entry','hazmat-tolerant','cold-weather','aquatic','crowd-management','de-escalation'];
+
+// Fictional responders, cover names only. respT = seconds this responder typically takes to react (sim mode).
+const SEED = [
+  {id:'undertow', name:'The Undertow', cap:['aquatic','cold-weather','de-escalation'], travel:9,  acc:.85, avail:true,  respT:72, declineP:.05},
+  {id:'farlight', name:'Farlight',     cap:['flight','cold-weather'],                   travel:12, acc:.80, avail:true,  respT:65, declineP:.05},
+  {id:'meteor',   name:'Meteor Mite',  cap:['flight','structural-entry'],               travel:15, acc:.75, avail:true,  respT:68, declineP:.10},
+  {id:'vesper',   name:'Vesper',       cap:['de-escalation','crowd-management'],        travel:20, acc:.78, avail:true,  respT:62, declineP:.10},
+  {id:'gantry',   name:'Gantry',       cap:['structural-entry','hazmat-tolerant'],      travel:26, acc:.55, avail:true,  respT:25, declineP:.20},
+  {id:'sparrow',  name:'Hollow Sparrow',cap:['crowd-management','de-escalation'],       travel:31, acc:.60, avail:true,  respT:20, declineP:.15},
+  {id:'brindle',  name:'Brindle',      cap:['hazmat-tolerant','cold-weather'],          travel:14, acc:.70, avail:false, respT:30, declineP:.10},
+];
+const INCIDENTS = [
+  {id:'i1', title:'Flooded loading dock, people trapped', need:['aquatic','structural-entry']},
+  {id:'i2', title:'Crowd surge at ferry terminal',        need:['crowd-management','de-escalation']},
+  {id:'i3', title:'Rooftop collapse, rescue by air',      need:['flight','structural-entry']},
+  {id:'i4', title:'Chemical leak, cold storage unit',     need:['hazmat-tolerant','cold-weather']},
+];
+
+let R, S, co, tick, clockT;
+const $ = id => document.getElementById(id);
+const clamp = x => Math.max(0, Math.min(1, x));
+
+function init(){
+  R = JSON.parse(JSON.stringify(SEED));
+  S = {taken:0, down:0, miss:0};
+  co = null; clockT = 0;
+  $('log').innerHTML='';
+  fillIncidents(); renderNeeds(); renderAll(); renderPhone();
+}
+function fillIncidents(){
+  $('incident').innerHTML = INCIDENTS.map(i=>`<option value="${i.id}">${i.title}</option>`).join('');
+  $('viewAs').innerHTML = '<option value="auto">(whoever is pinged)</option>' + R.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+}
+function curIncident(){ return INCIDENTS.find(i=>i.id===$('incident').value); }
+function renderNeeds(){
+  const need = curIncident().need;
+  $('needChips').innerHTML = '<span class="small">Required tags:</span> ' + TAGS.map(t=>`<span class="chip ${need.includes(t)?'on':''}">${t}</span>`).join('');
+}
+
+// ---- ranking (mirrors routing.py) ----
+function proxScore(r){ return r.travel >= HORIZON ? 0 : 1 - r.travel/HORIZON; }
+function capScore(r, need){ if(!need.length) return 1; return need.filter(t=>r.cap.includes(t)).length/need.length; }
+function score(r, need){ return W_PROX*proxScore(r) + W_ACC*r.acc + W_CAP*capScore(r, need); }
+function rank(need){
+  return R.filter(r=>r.avail).map(r=>({r, s:score(r,need)})).sort((a,b)=>b.s-a.s).map(x=>x.r.id);
+}
+
+function log(msg){
+  const m = Math.floor(clockT/60), s = Math.floor(clockT%60);
+  const d = document.createElement('div');
+  d.textContent = `[${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}] ${msg}`;
+  $('log').prepend(d);
+}
+const byId = id => R.find(r=>r.id===id);
+
+// ---- callout lifecycle ----
+function sendCallout(){
+  const inc = curIncident();
+  const queue = rank(inc.need);
+  const anyCapable = R.some(r=>r.avail && inc.need.every(t=>r.cap.includes(t)));
+  co = {inc, queue, status:Object.fromEntries(queue.map(id=>[id,'queued'])), idx:-1, pings:0, done:false, gap:!anyCapable, elapsed:0, pingStart:0};
+  log(`Callout sent: ${inc.title}. ${queue.length} available responders ranked.`);
+  if(co.gap) log('Coverage gap: nobody available has every required tag. Ranking still asks in order.');
+  pingNext();
+}
+function pingNext(forceId){
+  if(!co || co.done) return;
+  let id = forceId;
+  if(!id){
+    co.idx++;
+    id = co.queue.find((q,i)=>i>=co.idx && co.status[q]==='queued');
+    if(id) co.idx = co.queue.indexOf(id);
+  }
+  if(!id){ co.done = true; co.current = null; log('Everyone on the list has been asked. Callout unfilled.'); renderAll(); renderPhone(); return; }
+  co.current = id; co.status[id] = 'pinged'; co.pings++; co.pingStart = clockT;
+  const r = byId(id);
+  // sim plan: this responder reacts at respT (taken or declined) if simulate is on
+  co.plan = Math.random() < r.declineP ? 'declined' : 'taken';
+  log(`Ping -> ${r.name} (wait ${waitSec()}s)`);
+  renderAll(); renderPhone();
+}
+function waitSec(){ return +$('wait').value; }
+function resolve(outcome){
+  if(!co || !co.current) return;
+  const id = co.current, r = byId(id);
+  co.status[id] = outcome;
+  if(outcome==='taken'){ r.acc = clamp(r.acc + CREDIT); S.taken++; co.done = true; co.current = null; log(`${r.name} took it. Recent acceptance +${CREDIT}.`); }
+  else {
+    r.acc = clamp(r.acc - PENALTY);
+    if(outcome==='declined') S.down++; else S.miss++;
+    log(`${r.name} ${outcome==='declined'?'turned down':'missed'} the ping. Recent acceptance -${PENALTY} (a miss costs the same as a turn-down).`);
+    co.current = null; pingNext();
+    return;
+  }
+  renderAll(); renderPhone();
+}
+
+// ---- clock ----
+function loop(){
+  const dt = 0.1 * +$('speed').value;
+  clockT += dt;
+  if(co && co.current && !co.done){
+    const el = clockT - co.pingStart, r = byId(co.current);
+    if(el >= waitSec()) resolve('missed');
+    else if($('auto').checked && el >= r.respT) resolve(co.plan);
+  }
+  $('clock').textContent = fmt(clockT);
+  updateLive();
+}
+const fmt = t => `${String(Math.floor(t/60)).padStart(2,'0')}:${String(Math.floor(t%60)).padStart(2,'0')}`;
+function updateLive(){
+  const cd = document.getElementById('cd');
+  if(cd && co && co.current){
+    const left = Math.max(0, waitSec() - (clockT - co.pingStart));
+    cd.textContent = Math.ceil(left);
+    const pct = left/waitSec()*100;
+    cd.parentElement.style.background = `conic-gradient(var(--accent) ${pct}%, var(--chip) 0)`;
+  }
+}
+
+// ---- rendering: handler console ----
+function renderAll(){
+  const inc = co ? co.inc : curIncident();
+  $('coTitle').textContent = co ? `Active callout: ${co.inc.title}` : 'No active callout';
+  $('kPings').textContent = co ? co.pings : 0;
+  $('kTaken').textContent = S.taken; $('kDown').textContent = S.down; $('kMiss').textContent = S.miss;
+
+  let b = '';
+  if(co && co.gap) b += `<div class="banner warn"><b>Coverage gap.</b> No available responder has every required tag. This is a nobody-could-go case, not low acceptance.</div>`;
+  if(co && co.done && co.status && Object.values(co.status).includes('taken')) b += `<div class="banner ok">Filled in ${co.pings} ping${co.pings>1?'s':''}.</div>`;
+  else if(co && co.done) b += `<div class="banner bad">Unfilled after ${co.pings} pings.</div>`;
+  $('banner').innerHTML = b;
+
+  const need = inc.need, onlyMatch = $('filterMatch').checked;
+  const ids = co ? co.queue : rank(need);
+  const unavail = R.filter(r=>!r.avail).map(r=>r.id);
+  $('rank').innerHTML = ids.concat(unavail).map((id,i)=>{
+    const r = byId(id), a = r.avail;
+    const matches = need.every(t=>r.cap.includes(t));
+    if(onlyMatch && !matches) return '';
+    const st = a ? (co ? co.status[id] : 'queued') : 'unavailable';
+    const stLabel = {queued:'Queued',pinged:'Pinged',taken:'Taken',declined:'Turned down',missed:'Missed',unavailable:'Unavailable'}[st];
+    const canOverride = co && !co.done && a && st==='queued';
+    return `<tr class="${st==='pinged'?'pinged':''} ${a?'':'unavail'}">
+      <td>${a?i+1:'-'}</td><td><b>${r.name}</b></td>
+      <td>${r.cap.map(t=>`<span class="chip ${need.includes(t)?'on':''}">${t}</span>`).join(' ')}</td>
+      <td>${r.travel} min</td>
+      <td><div class="bar"><i style="width:${r.acc*100}%"></i></div><span class="small">${r.acc.toFixed(2)}</span></td>
+      <td>${a?score(r,need).toFixed(3):'-'}</td>
+      <td class="st ${st}">${stLabel}</td>
+      <td>${canOverride?`<button data-ov="${id}">Ping now</button>`:''}</td></tr>`;
+  }).join('');
+  $('formula').textContent = `Priority = ${W_PROX} x proximity + ${W_ACC} x recent acceptance + ${W_CAP} x capability match. Taken +${CREDIT}; turned down or missed -${PENALTY}, no decay.`;
+  document.querySelectorAll('[data-ov]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.ov;
+    if(co.current){ co.status[co.current]='queued'; log(`Handler override: pulled ping from ${byId(co.current).name}.`); }
+    log(`Handler override: pinged ${byId(id).name} out of order. Logged to routing-override audit log.`);
+    pingNext(id);
+  });
+}
+
+// ---- rendering: responder phone ----
+function renderPhone(){
+  const sel = $('viewAs').value;
+  const id = sel==='auto' ? (co && co.current) : sel;
+  const body = $('phoneBody');
+  if(!id){
+    body.innerHTML = `<h3>Rook</h3><div class="caption">No active pings</div>
+      <div class="caption">You will see a ping here when a handler's callout reaches you.</div>
+      <div class="sw"><span>Available for callouts</span><span>On</span></div>`;
+    return;
+  }
+  const r = byId(id);
+  const isPinged = co && co.current===id;
+  if(isPinged){
+    const inc = co.inc;
+    body.innerHTML = `<div class="small">${r.name}</div><h3>New callout</h3>
+      <div>${inc.title}</div>
+      <div class="row" style="margin:8px 0">${inc.need.map(t=>`<span class="chip ${r.cap.includes(t)?'on':''}">${t}</span>`).join('')}</div>
+      <div class="small">Travel estimate: ${r.travel} min</div>
+      <div class="ring" style="background:conic-gradient(var(--accent) 100%,var(--chip) 0)"><span id="cd">${waitSec()}</span></div>
+      <div class="caption">seconds before this passes to the next responder</div>
+      <button class="big take" id="takeBtn">Take it</button>
+      <button class="big decline" id="declBtn">Turn down</button>
+      <div class="sw"><span>Available for callouts</span><span>On</span></div>`;
+    $('takeBtn').onclick = ()=>resolve('taken');
+    $('declBtn').onclick = ()=>resolve('declined');
+    return;
+  }
+  const st = co && co.status[id];
+  const msg = st==='taken' ? 'You took this callout. Handler has been notified.'
+    : st==='declined' ? 'You turned this one down. It passed to the next responder.'
+    : st==='missed' ? 'This ping timed out and passed on.'
+    : 'No active pings';
+  body.innerHTML = `<div class="small">${r.name}</div><h3>${st==='taken'?'On callout':'Standing by'}</h3><div class="caption">${msg}</div>
+    <div class="sw"><span>Available for callouts</span><span>${r.avail?'On':'Off'}</span></div>`;
+}
+
+// ---- wiring ----
+$('incident').onchange = ()=>{ renderNeeds(); if(!co||co.done) renderAll(); };
+$('send').onclick = sendCallout;
+$('viewAs').onchange = renderPhone;
+$('reset').onclick = init;
+$('filterMatch').onchange = ()=>{ try{ localStorage.setItem('rook.filterMatch', $('filterMatch').checked?'1':'0'); }catch(e){} renderAll(); };
+try{ $('filterMatch').checked = localStorage.getItem('rook.filterMatch')==='1'; }catch(e){}
+init();
+setInterval(loop, 100);
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coming back prototype</title>
+<style>
+:root{--bg:#f4f5f7;--panel:#fff;--ink:#1b1f24;--mute:#6a727c;--line:#dfe3e8;--accent:#2b5fd9;--ok:#1d7a46;--warn:#b26a00;--chip:#eef1f6}
+@media(prefers-color-scheme:dark){:root{--bg:#14171b;--panel:#1d2127;--ink:#e8ebef;--mute:#97a0ab;--line:#2f353d;--accent:#6b93f2;--ok:#4cc17f;--warn:#e3a13c;--chip:#272d35}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,Segoe UI,sans-serif}
+header{padding:12px 20px;background:var(--panel);border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+h1{font-size:16px;margin:0}
+.note{color:var(--mute);font-size:12px}
+button{font:inherit;color:inherit;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 12px;cursor:pointer}
+button.on,button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+.seg{display:flex;gap:4px}
+main{max-width:980px;margin:0 auto;padding:20px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card h3{margin:0 0 2px;font-size:15px}
+.big{font-size:26px;font-weight:700}
+.badge{display:inline-block;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn);border:0;cursor:pointer}
+.badge.ok{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.bar{height:6px;background:var(--chip);border-radius:3px;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--accent)}
+.why{margin-top:10px;padding:10px;border-radius:8px;background:var(--chip);font-size:13px}
+.phone{width:300px;max-width:100%;margin:0 auto;border:2px solid var(--line);border-radius:28px;background:var(--panel);padding:22px 18px;min-height:430px}
+.phone h3{margin:0 0 6px}
+.pill{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;font-size:12px}
+.timer{font-size:40px;font-weight:700;text-align:center;margin:14px 0 4px}
+.row{display:flex;gap:8px;margin-top:12px}.row button{flex:1}
+.hidden{display:none}
+.frame{font-size:12px;color:var(--mute);margin:0 0 12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Coming back: quiet-responder prototype</h1>
+  <div class="seg" id="view">
+    <button data-v="console" class="on">Handler console (Kip)</button>
+    <button data-v="phone">Responder phone (The Undertow)</button>
+  </div>
+  <div class="seg" id="mode">
+    <button data-m="now" class="on">Today (4.2)</button>
+    <button data-m="new">With this brief</button>
+  </div>
+  <span class="note">Figures from callout-history.csv. Mock only, nothing is sent.</span>
+</header>
+<main>
+<section id="console">
+  <p class="frame">Kip, 11pm, two cards side by side. Week of 31 August.</p>
+  <div class="grid">
+    <div class="card">
+      <h3>Meteor Mite</h3><div class="note">Available, all tags set</div>
+      <div class="big">1 <span class="note">ping this week (was 11)</span></div>
+      <div class="bar"><i style="width:9%"></i></div>
+      <div id="miteState"><span class="note">No explanation shown.</span></div>
+      <div id="miteWhy" class="why hidden"></div>
+    </div>
+    <div class="card">
+      <h3>The Gale</h3><div class="note">Available, all tags set</div>
+      <div class="big">21 <span class="note">pings this week (was 13)</span></div>
+      <div class="bar"><i style="width:100%"></i></div>
+      <div id="galeState"><span class="note">No explanation shown.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="phone" class="hidden">
+  <div class="phone">
+    <div id="ph-status">
+      <span class="pill">The Undertow</span>
+      <h3 style="margin-top:14px" id="ph-title">Nothing yet</h3>
+      <p id="ph-body" class="note" style="font-size:14px">No pings for 9 days. Nothing here says why.</p>
+      <div id="ph-extra"></div>
+      <div class="row"><button id="simulate" disabled>Simulate a callout nearby</button></div>
+    </div>
+    <div id="ph-ping" class="hidden">
+      <span class="pill">First look</span>
+      <h3 style="margin-top:14px">Callout, 12 min away</h3>
+      <p class="note" style="font-size:14px">Needs: aquatic, cold-weather. You match both.</p>
+      <div class="timer" id="clock">60</div>
+      <div class="note" style="text-align:center">seconds to answer</div>
+      <div class="row"><button class="primary" id="take">Take it</button><button id="decline">Turn down</button></div>
+    </div>
+    <div id="ph-done" class="hidden">
+      <h3>You took it</h3>
+      <p class="note" style="font-size:14px">Your place moves up. The quiet status is gone and the console has been told.</p>
+      <div class="row"><button id="reset">Start over</button></div>
+    </div>
+  </div>
+</section>
+</main>
+<script>
+var view='console',mode='now',timer=null;
+var $=function(i){return document.getElementById(i)};
+function render(){
+  $('console').classList.toggle('hidden',view!=='console');
+  $('phone').classList.toggle('hidden',view!=='phone');
+  [].forEach.call(document.querySelectorAll('#view button'),function(b){b.classList.toggle('on',b.dataset.v===view)});
+  [].forEach.call(document.querySelectorAll('#mode button'),function(b){b.classList.toggle('on',b.dataset.m===mode)});
+  var isNew=mode==='new';
+  $('miteState').innerHTML=isNew?'<button class="badge" id="badge">Quiet: 1 ping in 7 days. Click for why</button>':'<span class="note">No explanation shown.</span>';
+  $('galeState').innerHTML=isNew?'<span class="badge ok">Busy: top of the list nearby</span> <span class="note">Not a fault.</span>':'<span class="note">No explanation shown.</span>';
+  $('miteWhy').classList.add('hidden');
+  if(isNew){$('badge').onclick=function(){
+    var w=$('miteWhy');w.classList.toggle('hidden');
+    w.innerHTML='<b>Why Meteor Mite is quiet</b><br>Her last offers ran out before she answered, which lowered her place. She is not on a block list and her account is fine.<br><br><b>What happens next</b><br>Her place eases back on its own. At the next callout she fits, she gets a first look. You will see a note here when it lifts.';
+  }}
+  $('simulate').disabled=!isNew;
+  $('ph-title').textContent=isNew?'You’re in rotation':'Nothing yet';
+  $('ph-body').textContent=isNew?'No pings for 9 days. Your last 8 offers ran out before you answered, which lowered your place. It eases on its own.':'No pings for 9 days. Nothing here says why.';
+  $('ph-extra').innerHTML=isNew?'<p class="note" style="font-size:14px">Next callout you fit, near you, you get a first look.</p>':'';
+  if(!isNew){stop();show('ph-status')}
+}
+function show(id){['ph-status','ph-ping','ph-done'].forEach(function(x){$(x).classList.toggle('hidden',x!==id)})}
+function stop(){if(timer){clearInterval(timer);timer=null}}
+$('simulate').onclick=function(){show('ph-ping');var s=60;$('clock').textContent=s;stop();
+  timer=setInterval(function(){s--;$('clock').textContent=s;if(s<=0){stop();show('ph-status')}},1000)};
+$('take').onclick=function(){stop();show('ph-done')};
+$('decline').onclick=function(){stop();show('ph-status')};
+$('reset').onclick=function(){show('ph-status')};
+document.querySelectorAll('#view button').forEach(function(b){b.onclick=function(){view=b.dataset.v;render()}});
+document.querySelectorAll('#mode button').forEach(function(b){b.onclick=function(){mode=b.dataset.m;render()}});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rook Dispatch click-through</title>
+<style>
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#1c2330;--mute:#667085;--line:#e1e4ea;--accent:#2457d6;--ok:#17803d;--warn:#b45309;--bad:#b42318;--okbg:#e7f6ec;--warnbg:#fff4e0;--badbg:#fdeceb}
+  @media (prefers-color-scheme:dark){:root{--bg:#14171d;--card:#1d222b;--ink:#e8ebf0;--mute:#9aa3b2;--line:#2e3542;--accent:#6b93f5;--ok:#4cc27a;--warn:#f0a94a;--bad:#f2766b;--okbg:#17301f;--warnbg:#3a2b12;--badbg:#3a1a18}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,sans-serif}
+  header{padding:16px;border-bottom:1px solid var(--line);background:var(--card)}
+  h1{font-size:17px;margin:0 0 2px}
+  header p{margin:0;color:var(--mute);font-size:13px}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;align-items:center}
+  .tab,.seg button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit}
+  .tab.on,.seg button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .seg{display:flex;gap:0;margin-left:auto}
+  .seg button{border-radius:0}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}
+  main{padding:0 16px 40px;max-width:1000px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:14px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .co{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;font:inherit}
+  .co.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+  .co b{display:block}.co span{font-size:12px;color:var(--mute)}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
+  .t-ok{background:var(--okbg);color:var(--ok)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-bad{background:var(--badbg);color:var(--bad)}
+  .tl{list-style:none;margin:12px 0;padding:0 0 0 18px;border-left:2px solid var(--line)}
+  .tl li{position:relative;margin:0 0 14px;padding-left:10px}
+  .tl li::before{content:"";position:absolute;left:-25px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--mute)}
+  .tl li.ok::before{background:var(--ok)}.tl li.warn::before{background:var(--warn)}.tl li.bad::before{background:var(--bad)}
+  .tl small{display:block;color:var(--mute)}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .alert{background:var(--badbg);border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:10px 12px;margin:10px 0}
+  .empty{color:var(--mute);padding:30px 0;text-align:center}
+  .wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .phone{width:300px;min-height:520px;border:8px solid #222;border-radius:32px;background:var(--card);padding:18px 16px;display:flex;flex-direction:column}
+  .phone{background:linear-gradient(180deg,#2b1b6b 0,#4b2bb3 150px,var(--card) 150px);padding-top:16px}
+  .phone h2{font-size:16px;margin:0 0 4px}
+  .hero{display:flex;gap:12px;align-items:center;color:#fff;margin-bottom:22px}
+  .hero svg{flex:none;border-radius:50%;border:3px solid #ffd23f;background:#1b1240}
+  .hero h2{color:#fff;font-size:18px;margin:0}
+  .hero small{color:#e0d8ff}
+  .pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12px;font-weight:700;margin:0 4px 4px 0;color:#fff}
+  .p-flight{background:#2f80ed}.p-structural-entry{background:#8d5524}.p-hazmat-tolerant{background:#c2410c}.p-cold-weather{background:#0e9ec2}.p-aquatic{background:#0b7a75}.p-crowd-management{background:#7c3aed}.p-de-escalation{background:#be185d}
+  .onduty{display:inline-block;background:#22c55e;color:#06210f;font-weight:700;font-size:11px;padding:1px 9px;border-radius:99px}
+  .skills{margin-top:6px}.skills b{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
+  .phone .btn{background:#6d3df2}.phone .btn.ghost{background:transparent;color:var(--ink)}
+  .phone .ring{color:#6d3df2}.phone .meter i{background:linear-gradient(90deg,#f59e0b,#6d3df2)}
+  /* COMIC BOOK THEME (phone only) */
+  .phone{color:#111;border:6px solid #111;border-radius:28px;box-shadow:6px 6px 0 #111;
+    background:radial-gradient(#f2b600 1.7px,transparent 1.9px) 0 0/10px 10px,#ffe14d;padding:14px}
+  .phone p,.phone small,.phone .skills b,.phone label.sp{color:#111!important}
+  .phone h2{font-family:Impact,"Arial Black",sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:20px;color:#111}
+  .phone .hero{background:#6d3df2;border:3px solid #111;box-shadow:4px 4px 0 #111;padding:8px 10px;border-radius:6px;margin-bottom:12px;transform:rotate(-1deg)}
+  .phone .hero h2{color:#fff;text-shadow:2px 2px 0 #111;font-size:22px}
+  .phone .hero small{color:#ffe14d!important;font-weight:700}
+  .phone .hero svg{border:3px solid #111;background:#ffe14d}
+  .phone .onduty{border:2px solid #111;box-shadow:2px 2px 0 #111}
+  .phone .pill{border:2px solid #111;box-shadow:2px 2px 0 #111;text-shadow:1px 1px 0 #111;font-family:Impact,"Arial Black",sans-serif;font-weight:400;letter-spacing:.04em;text-transform:uppercase}
+  .phone .btn{background:#ef4444;color:#fff;border:3px solid #111;box-shadow:3px 3px 0 #111;border-radius:6px;font-family:Impact,"Arial Black",sans-serif;letter-spacing:.06em;text-transform:uppercase;font-weight:400;font-size:16px}
+  .phone .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #111}
+  .phone .btn.ghost{background:#fff;color:#111}
+  .phone .card{background:#fff;color:#111;border:3px solid #111;border-radius:4px;box-shadow:3px 3px 0 #111}
+  .phone .card a{color:#6d3df2;font-weight:700}
+  .phone .ring{font-family:Impact,"Arial Black",sans-serif;font-weight:400;color:#ef4444;-webkit-text-stroke:2px #111;text-shadow:4px 4px 0 #111;background:#fff;border:3px solid #111;box-shadow:4px 4px 0 #111;border-radius:6px;margin:10px 0 12px;padding:2px 0;font-size:56px}
+  .phone .meter{height:16px;border:3px solid #111;border-radius:4px;background:#fff}
+  .phone .meter i{background:repeating-linear-gradient(45deg,#ef4444 0 8px,#ff8a8a 8px 16px)}
+  /* COMIC BOOK THEME (handler console + top bar) */
+  /* Handler console: functionality first, only light superhero touches */
+  #handler .hq{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--mute);font-size:13px}
+  #handler .hq b{font-weight:600;color:var(--ink)}
+  #handler .co{border:2px solid #111;border-radius:8px}
+  #handler .co.on{box-shadow:none;background:#fff4c2;border-color:#111}
+  #handler .tag{border:1.5px solid #111;color:#111;font-weight:700}
+  #handler .t-ok{background:#bbf7d0}#handler .t-warn{background:#ddd6fe}#handler .t-bad{background:#fecaca}
+  #handler .card{border:2px solid #111;border-radius:8px}
+  #handler .tl li::before{width:12px;height:12px;left:-25px;top:4px;border:2px solid #111}
+  #handler .tl li.ok::before{background:#22c55e}#handler .tl li.warn::before{background:#a78bfa}#handler .tl li.bad::before{background:#ef4444}
+  #handler .alert{border:2px solid var(--bad);font-weight:600}
+  .burst{display:block;width:100%;height:auto;margin:0 0 6px;transform:rotate(-3deg)}
+  .bubble{position:relative;background:#fff;border:3px solid #111;border-radius:18px;padding:8px 12px;margin:10px 0 16px;font-weight:600;box-shadow:3px 3px 0 #111}
+  .bubble::after{content:"";position:absolute;left:30px;bottom:-14px;width:16px;height:16px;background:#fff;border-right:3px solid #111;border-bottom:3px solid #111;transform:rotate(45deg) skew(10deg,10deg)}
+  .phone .row{margin-top:auto;padding-top:10px}
+  .chip{border:2px solid #111;background:#fff;color:#111;border-radius:99px;padding:4px 11px;margin:0 4px 4px 0;font:inherit;font-size:12px;font-weight:700;cursor:pointer;box-shadow:2px 2px 0 #111}
+  .chip.on{background:#ffd23f}
+  .ring{font-size:46px;font-weight:700;text-align:center;margin:14px 0 4px}
+  .meter{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+  .meter i{display:block;height:100%;background:var(--accent);width:100%;transition:width .2s linear}
+  .side{flex:1;min-width:260px}
+  .side h3{margin:0 0 6px;font-size:15px}
+  .side ul{margin:6px 0 0 18px;padding:0;color:var(--mute);font-size:13px}
+  .row{display:flex;gap:8px;margin-top:auto}.row .btn{flex:1}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;font-size:13px}
+  .compare div{padding:10px;border-radius:8px;border:1px solid var(--line)}
+  .compare .was{background:var(--badbg)}.compare .now{background:var(--okbg)}
+  label.sp{font-size:12px;color:var(--mute);display:flex;gap:6px;align-items:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>Rook Dispatch: quiet-responder recovery</h1>
+  <p>Click-through prototype for Helen. Invented data, cover identities only. Not real software.</p>
+</header>
+
+<div class="bar">
+  <button class="tab on" data-tab="handler">Handler console (Kip)</button>
+  <button class="tab" data-tab="phone">Responder phone app</button>
+  <div class="seg" id="mode">
+    <button data-mode="today">Today (4.2)</button>
+    <button data-mode="new" class="on">Proposed</button>
+  </div>
+</div>
+
+<main>
+<div id="handler">
+  <div class="hq"><svg width="22" height="22" viewBox="0 0 46 46" stroke="#111" stroke-width="3" stroke-linejoin="round" aria-hidden="true"><circle cx="23" cy="23" r="19" fill="#ffd23f"/><path d="M11 23c0-9 5-14 12-14s12 5 12 14" fill="none" stroke-width="4"/><rect x="6" y="20" width="6" height="10" rx="2" fill="#ef4444"/><rect x="34" y="20" width="6" height="10" rx="2" fill="#ef4444"/></svg><span><b>Dispatch HQ</b> · Handler console · Kip</span></div>
+  <div class="grid">
+    <div>
+      <button class="co on" data-co="0"><b>Callout 8841 Southport</b><span>structural-entry, cold-weather</span><br><span class="tag t-ok">Taken</span></button>
+      <button class="co" data-co="1"><b>Callout 8842 Riverside</b><span>hazmat-tolerant</span><br><span class="tag t-warn">Moved on twice</span></button>
+      <button class="co" data-co="2"><b>Callout 8843 Kingsbridge</b><span>aquatic</span><br><span class="tag t-bad">Nobody took it</span></button>
+    </div>
+    <div class="card" id="detail"></div>
+  </div>
+</div>
+
+<div id="phone" hidden>
+  <div class="wrap">
+    <div class="phone" id="screen"></div>
+    <div class="side card">
+      <h3>What to look at</h3>
+      <div id="pside"></div>
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+const WAIT_TODAY=60, WAIT_NEW=90;
+let mode="new", co=0, tab="handler";
+const $=s=>document.querySelector(s);
+
+const callouts=[
+ {id:8841,area:"Southport",
+  today:[["ok","Callout created","14:02:10"],["bad","Moved on from first responder","14:03:10","No reason shown. Handler cannot tell if they were asked."],["ok","Taken by The Gale","14:03:41"]],
+  nw:[["ok","Callout created","14:02:10"],["warn","Offered to Meteor Mite, no answer in 90s","14:03:40"],["ok","Offered to The Gale, taken","14:04:02"]],
+  status:"Taken"},
+ {id:8842,area:"Riverside",
+  today:[["ok","Callout created","09:40:00"],["bad","Moved on","09:41:00","No reason shown."],["bad","Moved on","09:42:00","No reason shown."],["ok","Taken by Sgt. Falkirk","09:42:20"]],
+  nw:[["ok","Callout created","09:40:00"],["warn","Offered to Farlight, no answer in 90s","09:41:30"],["warn","Offered to Corporal Ashgrove, turned down","09:41:52","A turn-down is recorded separately from a miss."],["ok","Offered to Sgt. Falkirk, taken","09:42:20"]],
+  status:"Moved on twice"},
+ {id:8843,area:"Kingsbridge",
+  today:[["ok","Callout created","16:15:00"],["bad","Moved on","16:16:00"],["bad","Moved on","16:17:00"],["bad","List ran out. Nothing happens.","16:17:00","The callout sits with no responder and no alert."]],
+  nw:[["ok","Callout created","16:15:00"],["warn","Offered to Vesper, no answer in 90s","16:16:30"],["warn","Offered to The Undertow, no answer in 90s","16:18:00"],["bad","List ran out. Alert raised to handler.","16:18:00","Handler can re-offer in one click."]],
+  status:"Nobody took it",alert:true}
+];
+
+function renderHandler(){
+  const c=callouts[co], ev=mode==="new"?c.nw:c.today;
+  const TG={"Taken":"t-ok","Moved on twice":"t-warn","Nobody took it":"t-bad"}[c.status];
+  let h=`<h3 style="margin:0 0 4px">Callout ${c.id} · ${c.area} <span class="tag ${TG}" style="vertical-align:2px">${c.status}</span></h3>`;
+  if(mode==="new") h+=`<div class="card" style="margin:10px 0 0;font-size:13px;color:var(--mute)">Ping wait: <b>${WAIT_NEW}s</b> per responder.</div>`;
+  h+=`<ul class="tl">`+ev.map(e=>`<li class="${e[0]}"><b>${e[1]}</b> <small>${e[2]}${e[3]?" · "+e[3]:""}</small></li>`).join("")+`</ul>`;
+  if(c.alert){
+    h+=mode==="new"
+     ?`<div class="alert"><b>No responder took this callout.</b> <div style="margin-top:8px"><button class="btn" id="reoffer">Re-offer</button></div><div id="rres"></div></div>`
+     :`<div class="alert">Nothing here tells you the callout is uncovered.</div>`;
+  }
+  $("#detail").innerHTML=h;
+  const r=$("#reoffer"); if(r) r.onclick=()=>{$("#rres").innerHTML="<p style='margin:8px 0 0;color:var(--ok)'>Re-offered. You will see replies here.</p>";r.disabled=true;
+    $(".tl").insertAdjacentHTML("beforeend","<li class='ok'><b>Re-offered by Kip</b> <small>16:18:40 · Manual override, logged in the routing-override audit log.</small></li>")};
+}
+
+/* phone */
+let ps="idle", t=0, timer=null, demo=true;
+function stop(){clearInterval(timer);timer=null}
+const stepsTaken=`<div class="card" style="font-size:13px;margin-bottom:10px"><b>Next steps</b><ol style="margin:6px 0 0 18px;padding:0"><li>Open the callout details: where, what is needed, who you are meeting.</li><li>Start travel so your handler can see you are on your way.</li><li>Check in when you arrive.</li></ol></div>`;
+const WEEKS=[["10 Aug",4,2,4],["17 Aug",1,1,2],["24 Aug",0,1,1],["31 Aug",0,0,1]];
+const seg=(n,c)=>n?`<div style="height:${n*13}px;background:${c};border:2px solid #111;border-bottom:0"></div>`:"";
+const summaryHtml=()=>`<div class="card" style="font-size:13px;margin-bottom:10px"><b>Pings by week</b> <small>10 Aug to 6 Sep</small>
+ <div style="display:flex;gap:14px;align-items:flex-end;height:140px;margin:8px 0 2px;border-bottom:3px solid #111;padding:0 6px">${WEEKS.map(w=>`<div style="flex:1;display:flex;flex-direction:column-reverse">${seg(w[1],"#22c55e")}${seg(w[2],"#60a5fa")}${seg(w[3],"#c4b5fd")}</div>`).join("")}</div>
+ <div style="display:flex;gap:14px;padding:0 6px;font-size:11px">${WEEKS.map(w=>`<div style="flex:1;text-align:center">${w[0]}</div>`).join("")}</div>
+ <div style="margin-top:8px;font-size:11px"><span style="background:#22c55e;border:2px solid #111;padding:0 7px">&nbsp;</span> Taken &nbsp;<span style="background:#60a5fa;border:2px solid #111;padding:0 7px">&nbsp;</span> Turned down &nbsp;<span style="background:#c4b5fd;border:2px solid #111;padding:0 7px">&nbsp;</span> No answer in time</div></div>
+`;
+const pill=t=>`<span class="pill p-${t}">${t}</span>`;
+const avatar=()=>`<svg width="68" height="68" viewBox="0 0 64 64" aria-label="Meteor Mite avatar" stroke="#111" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M1 63l5-17 14-6 12 4 12-4 14 6 5 17z" fill="#dc2626"/><path d="M20 40l12 4 12-4 2 6-14 5-14-5z" fill="#111"/><path d="M1 63l5-17 6 2-3 15zM63 63l-5-17-6 2 3 15z" fill="#111"/><path d="M28 36h8v6l-4 3-4-3z" fill="#f4c7a3"/><circle cx="32" cy="52" r="7" fill="#ffd23f"/><path d="M33 46l-4 7h3l-1 5 5-8h-3z" fill="#111" stroke-width="1.2"/><path d="M17 26c0-11 7-17 16-17 10 0 16 6 15 17 0 9-5 15-13 15h-4c-8 0-14-6-14-15z" fill="#f4c7a3"/><path d="M13 30C9 14 18 5 33 5c13 0 22 8 18 25-1-6-3-9-5-11-8 3-18 3-27-1-3 3-5 7-6 12z" fill="#7c2d12"/><path d="M15 30c-4 6-3 12 3 14-4-4-3-9-3-14zM49 30c4 6 3 12-3 14 4-4 3-9 3-14z" fill="#7c2d12" stroke-width="1.6"/><path d="M15 27l5-4 8 2 4-1 4 1 8-2 5 4c-1 5-6 8-11 7l-6-2-6 2c-5 1-10-2-11-7z" fill="#111"/><path d="M21 28l6-1.2-.8 2.8-5 .4zM43 28l-6-1.2.8 2.8 5 .4z" fill="#fff" stroke-width="1.4"/><path d="M28 37c2 1.6 6 1.6 8 0" fill="none"/></svg>`;
+const burst=(txt,fill,ink)=>{let p=[];for(let i=0;i<28;i++){const a=i/28*Math.PI*2,k=i%2?1:.74;p.push((130+k*124*Math.cos(a)).toFixed(1)+","+(52+k*46*Math.sin(a)).toFixed(1))}
+  return `<svg class="burst" viewBox="0 0 260 104" role="img" aria-label="${txt}"><polygon points="${p.join(" ")}" fill="${fill}" stroke="#111" stroke-width="4" stroke-linejoin="round"/><text x="130" y="64" text-anchor="middle" font-family="Impact,'Arial Black',sans-serif" font-size="30" letter-spacing="1" fill="${ink}" stroke="#111" stroke-width="${ink==="#fff"?1.5:0}" paint-order="stroke">${txt}</text></svg>`};
+const BURSTS={ping:["NEW CALLOUT!","#ef4444","#fff"],taken:["YOU GOT IT!","#22c55e","#fff"],down:["PASSED ON","#60a5fa","#111"],missed:["MISSED","#c4b5fd","#111"],why:["HOW IT WORKS","#ffd23f","#111"],summary:["YOUR MONTH","#ffd23f","#111"]};
+const heroHead=sub=>`<div class="hero">${avatar()}<div><h2>Meteor Mite</h2>${sub}</div></div>`;
+function phoneScreen(){
+  const W=mode==="new"?WAIT_NEW:WAIT_TODAY;
+  let h="", side="";
+  if(ps==="idle"){
+    h=`${heroHead('<span class="onduty">ON DUTY</span>')}
+       <div class="skills"><b>Your skills</b>${pill("flight")}${pill("cold-weather")}${pill("de-escalation")}</div>
+       <p style="margin-top:14px;color:var(--mute)">${mode==="new"?"No pings since 5 Sep.":"Nothing yet."}</p>
+       ${mode==="new"?`<div class="card" style="margin-top:10px;font-size:13px">You have been quiet for a while. <b>We'll make sure you're considered for your next callout in your area.</b> <a href="#" id="why">What affects this?</a></div>`:""}
+       ${mode==="new"?`<div class="row" style="margin-top:auto"><button class="btn ghost" id="sum" style="width:100%">My last month</button></div>`:""}<div class="row"><button class="btn" id="go">Simulate a ping</button></div>`;
+    side=mode==="new"
+     ?"<p>This responder was starved after 4.2. The app tells them a way back, instead of silence.</p><ul><li>A quiet-responder rule gives them one ping at fair rank.</li><li>No other responders are shown.</li></ul>"
+     :"<p>Today the app says nothing about being quiet. They just stop getting pings.</p>";
+  }else if(ps==="ping"){
+    h=`${heroHead('<small>New callout</small>')}
+       <h2 style="margin-top:4px">Callout 8842 · Riverside</h2><div class="skills"><b>Skills needed</b>${pill("hazmat-tolerant")}</div>
+       <div class="ring" id="ring">${Math.ceil(t)}s</div>
+       ${mode==="new"?`<div class="meter"><i id="bar" style="width:${t/W*100}%"></i></div><p style="text-align:center;font-size:13px;color:var(--mute)">Offered for ${W} seconds</p>`:`<p style="text-align:center;font-size:13px;color:var(--mute)">&nbsp;</p>`}
+       <label class="sp"><input type="checkbox" id="demo" ${demo?"checked":""}> Demo speed (5x)</label>
+       <div class="row"><button class="btn ghost" id="down">Turn down</button><button class="btn" id="take">Take it</button></div>`;
+    side=`<p>Ping wait is <b>${W}s</b>. ${mode==="new"?"The countdown is visible, so the responder knows how long they have.":"Today there is no countdown shown, and the wait is 60s."}</p><p>Let it run out to see a miss.</p>`;
+  }else if(ps==="taken"){
+    h=mode==="new"
+     ?`${heroHead('')}<h2>You took it</h2><p style="color:var(--ok)">Callout 8842 is yours.</p><div class="bubble">Thanks. You're back in normal rotation.</div>${stepsTaken}<div class="row"><button class="btn" id="reset">Back</button></div>`
+     :`${heroHead('')}<h2>You took it</h2><p style="color:var(--ok)">Callout 8842 is yours.</p>${stepsTaken}<div class="row"><button class="btn" id="reset">Back</button></div>`;
+    side="<p>A yes raises score (+0.08).</p>";
+  }else if(ps==="down"){
+    h=`${heroHead('')}<h2>Turned down</h2><p>Passed to the next responder.</p>${mode==="new"?`<div class="card" style="font-size:13px">Turning down is recorded separately from missing a ping.</div>`:""}
+       <div class="card" style="font-size:13px;margin-top:10px"><b>Next steps</b><ul style="margin:6px 0 0 18px;padding:0"><li>You stay on duty. Your next callout is offered as normal.</li>${mode==="new"?`<li>Optional: tell your handler why.</li></ul><div style="margin-top:8px"><button class="chip">Too far</button><button class="chip">Wrong skills</button><button class="chip">Going off duty</button><button class="chip">Something else</button></div><div id="chipres" style="margin-top:6px;font-weight:700"></div>`:`</ul>`}</div><div class="row"><button class="btn" id="reset">Back</button></div>`;
+    side="<p>A turn-down is a real choice, and it still lowers recent acceptance.</p>";
+  }else if(ps==="missed"){
+    h=mode==="new"
+     ?`${heroHead('')}<h2>You missed a callout</h2><p>Callout 8842 was offered for <b>${W} seconds</b> and moved on.</p><div class="card" style="font-size:13px">A miss counts for less than turning down, and it fades over time. Your next callout in your area is still yours to take.<br><a href="#" id="why">What affects how often I am pinged?</a></div><div class="row"><button class="btn" id="reset">Back</button></div>`
+     :`${heroHead('')}<h2>Callout gone</h2><p>It has been offered to someone else.</p><div class="row"><button class="btn" id="reset">Back</button></div>`;
+    side=mode==="new"
+     ?"<p>Compare with today: the responder is told what happened, for how long, and what it does to them.</p>"
+     :`<p>Today: no reason, no length of time, no consequence shown. A miss still costs the same as a turn-down (-0.12), and nothing raises the score but a yes.</p>`;
+  }else if(ps==="summary"){
+    h=`${heroHead('<small>My last month</small>')}${summaryHtml()}<div class="row"><button class="btn" id="reset">Back</button></div>`;
+    side="<p>Real counts for Meteor Mite from the Rook database. Data stops on 6 Sep, so this is the last four weeks available, not the last calendar month.</p><ul><li>Counts only, no scores.</li></ul>";
+  }else if(ps==="why"){
+    h=`${heroHead('')}<h2>How pings work</h2><p style="font-size:13px">Callouts go to responders ranked by distance, availability, skills and how often you take recent pings.</p><ul style="font-size:13px"><li>Taking a ping helps.</li><li>Turning down or missing one lowers it a little.</li><li>The effect fades over time.</li><li>If you have been quiet, you will get a fair chance.</li></ul><div class="row"><button class="btn" id="reset">Back</button></div>`;
+    side="<p>Plain language, no scores, no formula.</p>";
+  }
+  const B=BURSTS[ps]; if(B) h=h.replace("</div></div>","</div></div>"+burst(...B));
+  $("#screen").innerHTML=h; $("#pside").innerHTML=side;
+  bindPhone();
+}
+function bindPhone(){
+  const g=id=>document.getElementById(id);
+  if(g("sum"))g("sum").onclick=()=>{ps="summary";phoneScreen()};
+  if(g("go"))g("go").onclick=()=>{ps="ping";t=mode==="new"?WAIT_NEW:WAIT_TODAY;phoneScreen();run()};
+  if(g("take"))g("take").onclick=()=>{stop();ps="taken";phoneScreen()};
+  if(g("down"))g("down").onclick=()=>{stop();ps="down";phoneScreen()};
+  if(g("reset"))g("reset").onclick=()=>{ps="idle";phoneScreen()};
+  if(g("why"))g("why").onclick=e=>{e.preventDefault();ps="why";phoneScreen()};
+  document.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{document.querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));b.classList.add("on");g("chipres").textContent="Thanks, we've told your handler: "+b.textContent+"."});
+  if(g("demo"))g("demo").onchange=e=>demo=e.target.checked;
+}
+function run(){
+  stop();
+  timer=setInterval(()=>{
+    t-=(demo?5:1)*0.2;
+    const W=mode==="new"?WAIT_NEW:WAIT_TODAY;
+    if(t<=0){stop();ps="missed";phoneScreen();return}
+    const r=document.getElementById("ring"),b=document.getElementById("bar");
+    if(r)r.textContent=Math.ceil(t)+"s"; if(b)b.style.width=(t/W*100)+"%";
+  },200);
+}
+
+function show(){
+  $("#handler").hidden=tab!=="handler"; $("#phone").hidden=tab!=="phone";
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===tab));
+  document.querySelectorAll("#mode button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode));
+  document.querySelectorAll(".co").forEach(b=>b.classList.toggle("on",+b.dataset.co===co));
+  renderHandler(); stop(); ps="idle"; phoneScreen();
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;show()});
+document.querySelectorAll("#mode button").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;show()});
+document.querySelectorAll(".co").forEach(b=>b.onclick=()=>{co=+b.dataset.co;show()});
+show();
+</script>
+</body>
+</html>

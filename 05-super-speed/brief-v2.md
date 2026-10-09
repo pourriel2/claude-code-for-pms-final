@@ -2,7 +2,7 @@
 
 To: Helen Achebe. Date: 9 Oct 2026. Full detail: `prd-quiet-responder-recovery.md`.
 
-**Owner:** [your name], PM, Rook Dispatch.
+**Owner:** Rebbie Walsh, PM, Rook Dispatch.
 **Step owners (proposed):** step 1, Marcus Oyelaran (engineering) with the PM. Step 2, the PM with Marcus, Wen Li (ranking logic) and Sofia Marino (design). Measurement, Ravi Menon. Telling Supply, the PM.
 
 ## Scope

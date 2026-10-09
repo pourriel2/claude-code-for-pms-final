@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Release 4.2 Final Report</title>
+<style>
+  :root{
+    --bg:#120f2b; --bg2:#1a1640; --card:#221d4f; --line:#3a3380;
+    --ink:#f5f3ff; --mute:#b9b3e0; --gold:#ffd23f; --red:#ff5a5a; --green:#3ddc84;
+    --purple:#8b6cff; --teal:#2dd4bf; --blue:#5aa9ff;
+  }
+  *{box-sizing:border-box}
+  html{scroll-snap-type:y proximity;scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+  body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,"Segoe UI",Roboto,sans-serif}
+  .slide{min-height:100vh;scroll-snap-align:start;padding:56px 24px 64px;display:flex;align-items:center;position:relative;
+    background:radial-gradient(circle at 15% 0%,#2a2470 0,transparent 45%),radial-gradient(circle at 100% 100%,#3a1d5e 0,transparent 40%),var(--bg)}
+  .slide:nth-of-type(even){background:radial-gradient(circle at 85% 0%,#1d3a6a 0,transparent 45%),radial-gradient(circle at 0% 100%,#3a2470 0,transparent 40%),var(--bg2)}
+  .wrap{max-width:1100px;margin:0 auto;width:100%}
+  .kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 8px}
+  h1,h2{font-family:Impact,"Arial Black",system-ui,sans-serif;font-weight:400;letter-spacing:.02em;margin:0 0 14px;line-height:1.08}
+  h1{font-size:clamp(38px,6vw,72px)}
+  h2{font-size:clamp(30px,4.4vw,50px)}
+  h3{margin:0 0 8px;font-size:18px}
+  p{margin:0 0 12px}
+  .lead{font-size:clamp(18px,2.1vw,22px);color:var(--mute);max-width:760px}
+  .mute{color:var(--mute)}
+  .hl{color:var(--gold)}
+  .red{color:var(--red)}.green{color:var(--green)}
+  .card{background:var(--card);border:3px solid #000;border-radius:14px;box-shadow:6px 6px 0 #000;padding:18px 20px}
+  .grid{display:grid;gap:18px}
+  .g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.g4{grid-template-columns:1fr 1fr}.g3,.g2{grid-template-columns:1fr}}
+  @media(max-width:520px){.g4{grid-template-columns:1fr}}
+  .stat .big{font-family:Impact,"Arial Black",sans-serif;font-size:clamp(38px,5vw,58px);line-height:1;margin:2px 0 6px}
+  .stat .from{color:var(--mute);font-size:15px}
+  .stat .what{font-weight:600}
+  .tag{display:inline-block;border:2px solid #000;border-radius:99px;padding:2px 12px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#000;background:var(--gold)}
+  .tag.p{background:var(--purple);color:#fff}.tag.g{background:var(--green)}.tag.r{background:var(--red)}.tag.t{background:var(--teal)}.tag.b{background:var(--blue)}
+  /* bars */
+  .bars{display:grid;gap:12px;margin-top:6px}
+  .bar-row{display:grid;grid-template-columns:140px 1fr 64px;gap:10px;align-items:center;font-size:15px}
+  @media(max-width:520px){.bar-row{grid-template-columns:96px 1fr 52px;font-size:13px}}
+  .track{height:26px;background:#0d0a22;border:2px solid #000;border-radius:7px;overflow:hidden}
+  .bar{height:100%;width:0;background:var(--purple);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+  .bar.red{background:var(--red)}.bar.green{background:var(--green)}.bar.gold{background:var(--gold)}
+  .slide.in .bar{width:var(--v)}
+  .bar-row b{text-align:right}
+  /* evidence slide */
+  .ev{display:grid;grid-template-columns:5fr 6fr;gap:22px;align-items:start}
+  @media(max-width:900px){.ev{grid-template-columns:1fr}}
+  .prompt{background:#0d0a22;border:3px solid #000;border-left:8px solid var(--gold);border-radius:12px;box-shadow:6px 6px 0 #000;padding:16px 18px}
+  .prompt .lab{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:8px}
+  .prompt .txt{white-space:pre-wrap;font-size:16px;color:#fff}
+  .prompt details summary{cursor:pointer;color:var(--gold);font-weight:700;margin-top:8px}
+  .prompt .clip{max-height:7.6em;overflow:hidden;position:relative}
+  .prompt .clip::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3em;background:linear-gradient(transparent,#0d0a22)}
+  .finding .num{font-family:Impact,"Arial Black",sans-serif;font-size:clamp(34px,4.6vw,52px);line-height:1}
+  .mod{display:inline-flex;align-items:center;gap:8px;margin-bottom:10px}
+  .mod i{font-style:normal;font-family:Impact,"Arial Black",sans-serif;background:var(--gold);color:#000;border:3px solid #000;border-radius:50%;width:44px;height:44px;display:grid;place-items:center;font-size:22px}
+  .src{font-size:13px;color:var(--mute);margin-top:10px}
+  /* timeline */
+  .tl{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;position:relative;margin-top:18px}
+  .tl::before{content:"";position:absolute;left:0;right:0;top:15px;height:6px;background:var(--line);border-radius:3px}
+  .tl .ev1{position:relative;padding-top:34px;font-size:14px}
+  .tl .ev1::before{content:"";position:absolute;top:6px;left:0;width:22px;height:22px;border-radius:50%;background:var(--purple);border:3px solid #000}
+  .tl .ev1.hot::before{background:var(--red);box-shadow:0 0 0 6px rgba(255,90,90,.3)}
+  .tl .ev1 b{display:block;color:var(--gold)}
+  @media(max-width:900px){.tl{grid-template-columns:1fr;padding-left:6px}.tl::before{left:15px;right:auto;top:0;bottom:0;width:6px;height:auto}.tl .ev1{padding:0 0 0 44px}.tl .ev1::before{left:6px;top:2px}}
+  /* spark */
+  .spark{display:flex;align-items:flex-end;gap:6px;height:130px;border-bottom:3px solid #000;padding:0 4px;margin-top:10px;position:relative}
+  .spark .c{flex:1;background:var(--blue);border:2px solid #000;border-bottom:0;border-radius:5px 5px 0 0;height:0;transition:height 1s cubic-bezier(.2,.8,.2,1);position:relative}
+  .slide.in .spark .c{height:var(--h)}
+  .spark .c.after{background:var(--red)}
+  .spark .c span{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:12px;color:var(--mute)}
+  .spark-lab{display:flex;gap:6px;padding:0 4px;font-size:11px;color:var(--mute)}
+  .spark-lab div{flex:1;text-align:center}
+  /* seesaw */
+  .see{display:flex;gap:26px;align-items:flex-end;justify-content:center;margin:8px 0 4px}
+  .see .col{text-align:center;width:130px}
+  .see .blk{border:3px solid #000;border-radius:10px 10px 0 0;font-family:Impact,"Arial Black",sans-serif;font-size:30px;display:grid;place-items:center;color:#000;height:0;transition:height 1s}
+  .slide.in .see .blk{height:var(--h)}
+  .see .up .blk{background:var(--green)}.see .down .blk{background:var(--red)}
+  /* skills grid */
+  .chk{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(max-width:560px){.chk{grid-template-columns:1fr}}
+  .chk div{background:#0d0a22;border:2px solid #000;border-radius:10px;padding:10px 12px;font-size:15px}
+  .chk b{color:var(--gold)}
+  table.map{width:100%;border-collapse:separate;border-spacing:0 10px;font-size:16px}
+  table.map td{background:var(--card);border-top:3px solid #000;border-bottom:3px solid #000;padding:12px 14px;vertical-align:top}
+  table.map td:first-child{border-left:3px solid #000;border-radius:12px 0 0 12px;width:46%}
+  table.map td:last-child{border-right:3px solid #000;border-radius:0 12px 12px 0}
+  @media(max-width:700px){table.map,table.map tbody,table.map tr,table.map td{display:block;width:100%!important}table.map td{border:3px solid #000!important;border-radius:0!important}table.map tr{margin-bottom:12px}}
+  /* prototype frame */
+  .frame{border:4px solid #000;border-radius:16px;box-shadow:8px 8px 0 #000;overflow:hidden;background:#fff}
+  .frame iframe{display:block;width:100%;height:760px;border:0;background:#f4f5f7}
+  /* nav */
+  #dots{position:fixed;right:12px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:9px;z-index:20}
+  #dots a{width:12px;height:12px;border-radius:50%;background:var(--line);border:2px solid #000;display:block}
+  #dots a.on{background:var(--gold);transform:scale(1.3)}
+  @media(max-width:700px){#dots{display:none}}
+  #prog{position:fixed;left:0;top:0;height:6px;width:0;background:linear-gradient(90deg,var(--gold),var(--red),var(--purple));z-index:30}
+  .hint{position:fixed;left:16px;bottom:12px;font-size:12px;color:var(--mute);z-index:20;background:rgba(18,15,43,.8);padding:4px 10px;border-radius:99px}
+  @media(max-width:700px){.hint{display:none}}
+  svg text{font-family:system-ui,"Segoe UI",sans-serif}
+  .burst{position:absolute;right:-6px;top:-30px;transform:rotate(8deg)}
+  a{color:var(--gold)}
+  .foot{font-size:13px;color:var(--mute)}
+  ul.clean{margin:0;padding-left:20px}ul.clean li{margin:0 0 6px}
+  .step{display:grid;grid-template-columns:54px 1fr;gap:14px;align-items:start}
+  .step .n{font-family:Impact,"Arial Black",sans-serif;font-size:30px;width:50px;height:50px;border:3px solid #000;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#000}
+
+  .slide::before{content:"";position:absolute;inset:0;background:radial-gradient(rgba(255,210,63,.13) 2px,transparent 2.6px) 0 0/18px 18px;pointer-events:none}
+  .wrap{position:relative;z-index:1}
+  .slide{overflow-x:clip}
+  html,body{overflow-x:hidden}
+  h1,h2{text-shadow:3px 3px 0 #000}
+  .card{border-radius:18px}
+  .cap{display:inline-block;background:var(--gold);color:#000;border:3px solid #000;padding:4px 12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:13px;box-shadow:3px 3px 0 #000;transform:rotate(-1.5deg);margin:0 0 6px}
+  .mod{display:flex!important;align-items:flex-end;gap:12px;margin-bottom:6px!important}
+  .mod .hero{width:92px;height:auto;flex:none}
+  .cardhero{margin:-4px 0 2px}.cardhero svg{width:74px;height:auto}
+  .title-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:20px;align-items:center}
+  @media(max-width:800px){.title-grid{grid-template-columns:1fr}.title-grid .hero-big{order:-1;justify-self:start}}
+  .hero-big svg{width:min(340px,70vw);height:auto;filter:drop-shadow(8px 8px 0 #000)}
+  .sky{position:absolute;left:0;right:0;bottom:0;width:100%;height:110px;pointer-events:none;z-index:0}
+  @keyframes bobk{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .hero.bob{animation:bobk 3s ease-in-out infinite}
+  @keyframes pulsek{0%,100%{transform:rotate(8deg) scale(1)}50%{transform:rotate(8deg) scale(1.08)}}
+  .pow{position:absolute;right:-26px;top:-34px;width:104px;transform:rotate(8deg);animation:pulsek 2s ease-in-out infinite}
+  .ev1.hot{position:relative}
+  .pow2{position:absolute;right:34px;top:20px;width:170px;transform:rotate(6deg);animation:pulsek 2.4s ease-in-out infinite;z-index:2}
+  .wrap:has(> .pow2) h2{padding-right:210px}
+  @media(max-width:900px){.pow2{display:none}.wrap:has(> .pow2) h2{padding-right:0}}
+  .lead-row{display:flex;gap:18px;align-items:flex-end}
+  .lead-row .lead{flex:1}
+  .hbox{flex:none;width:170px;position:relative;margin-top:10px}
+  .hbox .hero{width:130px;height:auto}
+  @media(max-width:700px){.hbox{display:none}}
+  .bub{position:relative;background:#fff;color:#111;border:3px solid #000;border-radius:16px;padding:8px 12px;font-weight:800;font-size:14px;box-shadow:3px 3px 0 #000;line-height:1.25}
+  .bub::after{content:"";position:absolute;left:34px;bottom:-14px;width:16px;height:16px;background:#fff;border-right:3px solid #000;border-bottom:3px solid #000;transform:rotate(45deg)}
+  .hbox .bub{margin:0 0 16px;transform:rotate(-2deg);text-align:center}
+  .hbox .bub::after{left:70px}
+  .row-hero{display:flex;gap:12px;align-items:flex-end;margin-bottom:12px}
+  .row-hero .hero{width:96px;height:auto;flex:none}
+  .row-hero .bub{margin-bottom:34px}
+  .tobecont{display:inline-block;background:#fff6c2;color:#111;border:4px solid #000;padding:8px 18px;font-family:Impact,"Arial Black",sans-serif;font-size:clamp(20px,3vw,30px);letter-spacing:.06em;text-transform:uppercase;box-shadow:5px 5px 0 #000;transform:rotate(-2deg);text-shadow:none}
+</style>
+<noscript><style>.bar{width:var(--v)!important}.spark .c{height:var(--h)!important}.see .blk{height:var(--h)!important}</style></noscript>
+</head>
+<body>
+<div id="prog"></div>
+<nav id="dots" aria-label="Slides"></nav>
+<div class="hint">Arrow keys or scroll</div>
+
+<main>
+
+<!-- 1 TITLE -->
+<section class="slide" data-title="Title">
+  <div class="wrap">
+    <div class="title-grid">
+      <div>
+        <p class="cap">Issue #4.2 &middot; Rook Dispatch &middot; 9 Oct 2026</p>
+        <h1>What happened with <span class="hl">release 4.2</span>,<br>and how we stop it happening again</h1>
+        <p class="lead">Six sessions of work in one story: what broke, how we found out, the fix we would build, and the habit that keeps the next release honest.</p>
+        <p><span class="tag p">Rook is a fictional company</span> <span class="tag">Course project</span></p>
+      </div>
+      <div class="hero-big"><svg class="hero bob" viewBox="0 0 120 150" width="340" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ef4444"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ef4444"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ef4444"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ef4444" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ef4444" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><path d="M63 83 L54 96 L60 96 L57 105 L67 91 L61 91 Z" fill="#111" stroke-width="2"/><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div>
+    </div>
+  </div>
+  <svg class="sky" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="61" width="70" height="59" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="70" y="65" width="86" height="55" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="156" y="56" width="86" height="64" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="242" y="17" width="83" height="103" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="325" y="36" width="92" height="84" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="417" y="57" width="81" height="63" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="498" y="30" width="93" height="90" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="591" y="70" width="69" height="50" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="660" y="62" width="73" height="58" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="733" y="38" width="82" height="82" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="815" y="23" width="72" height="97" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="887" y="25" width="61" height="95" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="948" y="36" width="80" height="84" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="1028" y="27" width="79" height="93" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="1107" y="45" width="62" height="75" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="1169" y="16" width="80" height="104" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="8" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="24" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="56" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="40" y="87" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="56" y="87" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="8" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="24" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="56" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="126" y="75" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="78" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="94" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="126" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="142" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="142" y="107" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="164" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="196" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="212" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="228" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="180" y="82" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="196" y="82" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="164" y="98" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="212" y="98" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="282" y="27" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="27" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="250" y="43" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="282" y="43" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="43" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="59" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="298" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="298" y="107" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="107" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="333" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="397" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="333" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="397" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="425" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="441" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="457" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="473" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="457" y="99" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="506" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="554" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="570" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="56" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="538" y="56" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="570" y="56" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="570" y="72" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="506" y="88" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="88" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="104" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="599" y="80" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="631" y="96" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="716" y="72" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="684" y="88" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="684" y="104" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="700" y="104" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="741" y="64" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="757" y="64" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="773" y="64" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="741" y="80" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="773" y="96" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="855" y="33" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="823" y="49" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="839" y="49" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="871" y="49" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="871" y="65" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="839" y="81" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="823" y="97" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="839" y="97" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="871" y="97" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="35" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="51" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="927" y="51" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="927" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="895" y="83" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="83" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="99" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="956" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="988" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="972" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1004" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="972" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1004" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="956" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1004" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="988" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1068" y="37" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1084" y="37" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1052" y="69" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1068" y="69" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1036" y="85" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1052" y="85" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1084" y="101" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="55" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1131" y="55" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1147" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="87" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1131" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="42" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1193" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1209" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1225" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="74" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1193" y="74" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1193" y="90" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="106" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1225" y="106" width="7" height="9" fill="#ffd23f" opacity=".85"/></svg>
+</section>
+
+<!-- 2 PLAIN WORDS -->
+<section class="slide" data-title="What happened">
+  <div class="wrap">
+    <p class="kicker">In plain words</p>
+    <h2>4.2 made responders miss pings, and then <span class="hl">punished them for it</span></h2>
+    <div class="lead-row"><p class="lead">On 12 August we cut the time a responder has to answer a ping from 90 seconds to 60, and shifted the ranking toward who is nearest. Missed pings jumped that same day, and the way the ranking is built means some responders could not recover.</p><div class="hbox"><div class="bub">Wait, my phone rang?!</div><svg class="hero bob" viewBox="0 0 120 150" width="130" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ff5a5a"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#2dd4bf"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#2dd4bf"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#2dd4bf"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#2dd4bf" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#2dd4bf" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><path d="M63 83 L54 96 L60 96 L57 105 L67 91 L61 91 Z" fill="#111" stroke-width="2"/><rect x="86" y="82" width="17" height="28" rx="4" fill="#fff"/><rect x="89" y="87" width="11" height="15" rx="1.5" fill="#ff5a5a" stroke="none"/><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#7c2d12"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#7c2d12"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M51 78 q9 -7 18 0" fill="none" stroke-width="3"/><path d="M98 30 q7 11 0 16 q-7 -5 0 -16z" fill="#7dd3fc" stroke-width="2.5"/><path d="M35 40 l14 5 M85 40 l-14 5" fill="none" stroke="#fff" stroke-width="3"/></g></svg></div></div>
+    <div class="grid g4" style="margin-top:22px">
+      <div class="card stat"><div class="from">Missed pings</div><div class="big red">2% &rarr; 21.5%</div><div class="what">in the week of 10 Aug</div></div>
+      <div class="card stat"><div class="from">Four responders, missed</div><div class="big red">2.4% &rarr; 58.9%</div><div class="what">33 of 56 pings</div></div>
+      <div class="card stat"><div class="from">Support tickets a week</div><div class="big red">~6 &rarr; ~28</div><div class="what">45 callout tickets, none closed</div></div>
+      <div class="card stat"><div class="from">Callouts nobody took</div><div class="big red">~5% &rarr; ~13%</div><div class="what">for three weeks after 12 Aug</div></div>
+    </div>
+    <p class="foot" style="margin-top:16px">Source: Rook database, 29 Jun to 6 Sep 2026. Not seasonal: callouts fell about 11% in August, but total pings stayed flat at about 170 a week.</p>
+  </div>
+</section>
+
+<!-- 3 WHY LOOP -->
+<section class="slide" data-title="Why it happened">
+  <div class="wrap">
+    <p class="kicker">Why it happened</p>
+    <h2>A loop with <span class="hl">no way out</span></h2>
+    <div class="grid g2" style="align-items:center">
+      <svg viewBox="0 0 600 430" role="img" aria-label="Loop: shorter wait, more misses, score drops, fewer pings, fewer chances to say yes, back to a low score">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ffd23f"/></marker></defs>
+        <g stroke="#000" stroke-width="3">
+          <rect x="190" y="14" width="220" height="62" rx="12" fill="#8b6cff"/>
+          <rect x="372" y="120" width="220" height="62" rx="12" fill="#ff5a5a"/>
+          <rect x="350" y="290" width="240" height="78" rx="12" fill="#ff5a5a"/>
+          <rect x="10" y="290" width="240" height="78" rx="12" fill="#2dd4bf"/>
+          <rect x="8" y="120" width="220" height="62" rx="12" fill="#5aa9ff"/>
+        </g>
+        <g fill="#000" font-size="17" font-weight="700" text-anchor="middle">
+          <text x="300" y="42">Ping wait cut</text><text x="300" y="64">90s to 60s</text>
+          <text x="482" y="148">More pings</text><text x="482" y="170">go unanswered</text>
+          <text x="470" y="318">A miss costs -0.12,</text><text x="470" y="340">same as a turn-down</text><text x="470" y="360" font-size="14" font-weight="600">no decay, no reset</text>
+          <text x="130" y="318">Score drops, so</text><text x="130" y="340">fewer pings arrive</text>
+          <text x="118" y="148">Fewer chances</text><text x="118" y="170">to earn +0.08</text>
+        </g>
+        <g stroke="#ffd23f" stroke-width="4" fill="none" marker-end="url(#ar)">
+          <path d="M410 46 C 470 50 500 80 500 116"/>
+          <path d="M500 184 C 500 230 490 262 480 286"/>
+          <path d="M346 330 L 256 330"/>
+          <path d="M130 286 C 120 250 120 220 120 186"/>
+          <path d="M228 150 C 300 190 380 250 420 286" stroke-dasharray="8 7"/>
+        </g>
+        <text x="300" y="412" fill="#ffd23f" font-size="17" font-weight="800" text-anchor="middle">Stuck: nothing here raises a score except a yes</text>
+      </svg>
+      <div>
+        <div class="row-hero"><svg class="hero bob" viewBox="0 0 120 150" width="96" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ef4444"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ef4444"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ef4444"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ef4444" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ef4444" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><path d="M63 83 L54 96 L60 96 L57 105 L67 91 L61 91 Z" fill="#111" stroke-width="2"/><text x="94" y="30" font-family="Impact,Arial Black,sans-serif" font-size="28" fill="#ffd23f" stroke="#111" stroke-width="2" paint-order="stroke">?</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M51 78 q9 -7 18 0" fill="none" stroke-width="3"/><path d="M98 30 q7 11 0 16 q-7 -5 0 -16z" fill="#7dd3fc" stroke-width="2.5"/><path d="M35 40 l14 5 M85 40 l-14 5" fill="none" stroke="#fff" stroke-width="3"/></g></svg><div class="bub">Why am I not getting pings?</div></div>
+        <div class="card" style="margin-bottom:16px">
+          <h3>Two changes shipped together</h3>
+          <ul class="clean"><li>Ping wait: <b>90s to 60s</b>.</li><li>Ranking weights: nearness <b>0.45 to 0.60</b>, recent acceptance <b>0.40 to 0.25</b>.</li></ul>
+        </div>
+        <div class="card">
+          <h3>Who it hit</h3>
+          <p style="margin:0">Four responders (The Undertow, Farlight, Meteor Mite, Vesper) lost 65 to 74% of their pings. Two others gained about 45%. Total pings stayed flat: the work moved, it did not disappear.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 TIMELINE -->
+<section class="slide" data-title="Timeline">
+  <div class="wrap">
+    <p class="kicker">The timeline</p>
+    <h2>The signal was there <span class="hl">on day one</span></h2>
+    <p class="lead">Misses jumped on release day, and the first ticket arrived the same afternoon. The "mostly seasonal" read was never measured.</p>
+    <div class="tl">
+      <div class="ev1"><b>7 Apr</b>4.0: console nav, override audit log</div>
+      <div class="ev1"><b>16 Jun</b>4.1: travel-time proximity</div>
+      <div class="ev1 hot"><span class="pow"><svg viewBox="0 0 260 104" width="104" role="img" aria-label="POW!"><polygon points="219.3,52.0 247.9,66.2 202.2,71.5 202.9,89.2 157.6,83.5 130.0,98.0 102.4,83.5 57.1,89.2 57.8,71.5 12.1,66.2 40.7,52.0 12.1,37.8 57.8,32.5 57.1,14.8 102.4,20.5 130.0,6.0 157.6,20.5 202.9,14.8 202.2,32.5 247.9,37.8" fill="#ff5a5a" stroke="#111" stroke-width="4" stroke-linejoin="round"/><text x="130" y="63" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="34" letter-spacing="1" fill="#fff" stroke="#111" stroke-width="1.5" paint-order="stroke">POW!</text></svg></span><b>12 Aug</b>4.2 ships. 7 misses that day, 12 the next. First ticket at 15:41.</div>
+      <div class="ev1"><b>17 Aug</b>"Responder gone quiet" tickets begin</div>
+      <div class="ev1"><b>5 Sep</b>Last ping seen for Meteor Mite. The Undertow had gone 9 days with none.</div>
+      <div class="ev1 hot"><b>6 Oct</b>My investigation starts. Ticket data ends 7 Sep with 45 callout tickets still open.</div>
+    </div>
+    <div class="grid g3" style="margin-top:26px">
+      <div class="card"><h3>Acceptance</h3><div class="bars">
+        <div class="bar-row"><span>Before</span><div class="track"><div class="bar green" style="--v:76.8%"></div></div><b>76.8%</b></div>
+        <div class="bar-row"><span>4.2 week</span><div class="track"><div class="bar red" style="--v:54.2%"></div></div><b>54.2%</b></div>
+        <div class="bar-row"><span>17 to 31 Aug</span><div class="track"><div class="bar gold" style="--v:68.5%"></div></div><b>68.5%</b></div></div></div>
+      <div class="card"><h3>Missed rate</h3><div class="bars">
+        <div class="bar-row"><span>Before</span><div class="track"><div class="bar green" style="--v:2%"></div></div><b>2%</b></div>
+        <div class="bar-row"><span>Wk of 10 Aug</span><div class="track"><div class="bar red" style="--v:21.5%"></div></div><b>21.5%</b></div>
+        <div class="bar-row"><span>Wk of 31 Aug</span><div class="track"><div class="bar gold" style="--v:12.7%"></div></div><b>12.7%</b></div></div></div>
+      <div class="card"><h3>Uncovered callouts</h3><div class="bars">
+        <div class="bar-row"><span>Before</span><div class="track"><div class="bar green" style="--v:5%"></div></div><b>~5%</b></div>
+        <div class="bar-row"><span>3 wks after</span><div class="track"><div class="bar red" style="--v:13%"></div></div><b>~13%</b></div>
+        <div class="bar-row"><span>Wk of 31 Aug</span><div class="track"><div class="bar gold" style="--v:5.5%"></div></div><b>5.5%</b></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 EVIDENCE INTRO -->
+<section class="slide" data-title="Six sessions">
+  <div class="wrap">
+    <p class="kicker">The evidence trail</p>
+    <h2>Six sessions, six findings, <span class="hl">my own prompts</span></h2>
+    <p class="lead">For each module: the exact prompt I wrote, and the finding or artifact it produced.</p>
+    <div class="grid g3" style="margin-top:22px">
+      <div class="card"><div class="cardhero"><svg class="hero" viewBox="0 0 120 150" width="74" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ffd23f"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ffd23f"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ffd23f"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ffd23f" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ffd23f" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">1</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div><span class="tag">Module 1</span><h3 style="margin-top:8px">Origin Story</h3><p class="mute" style="margin:0">A first-month plan with a decision date.</p></div>
+      <div class="card"><div class="cardhero"><svg class="hero" viewBox="0 0 120 150" width="74" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#2dd4bf"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#8b6cff"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#8b6cff"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#8b6cff"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#8b6cff" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#8b6cff" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">2</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#7c2d12"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#7c2d12"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div><span class="tag p">Module 2</span><h3 style="margin-top:8px">Super Hearing</h3><p class="mute" style="margin:0">Tickets quadrupled, and none about 4.2 were closed.</p></div>
+      <div class="card"><div class="cardhero"><svg class="hero" viewBox="0 0 120 150" width="74" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ffd23f"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ff5a5a"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ff5a5a"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ff5a5a"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ff5a5a" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ff5a5a" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">3</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#111"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#111"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div><span class="tag r">Module 3</span><h3 style="margin-top:8px">Rewind</h3><p class="mute" style="margin:0">It happened to four people, not everyone.</p></div>
+      <div class="card"><div class="cardhero"><svg class="hero" viewBox="0 0 120 150" width="74" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ff5a5a"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#2dd4bf"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#2dd4bf"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#2dd4bf"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#2dd4bf" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#2dd4bf" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">4</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#6b21a8"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#6b21a8"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div><span class="tag t">Module 4</span><h3 style="margin-top:8px">X-Ray Vision</h3><p class="mute" style="margin:0">The code only ever lets a yes raise a score.</p></div>
+      <div class="card"><div class="cardhero"><svg class="hero" viewBox="0 0 120 150" width="74" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ffd23f"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#5aa9ff"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#5aa9ff"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#5aa9ff"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#5aa9ff" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#5aa9ff" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">5</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div><span class="tag b">Module 5</span><h3 style="margin-top:8px">Super Speed</h3><p class="mute" style="margin:0">A click-through of the fix.</p></div>
+      <div class="card"><div class="cardhero"><svg class="hero" viewBox="0 0 120 150" width="74" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#3ddc84"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#3ddc84"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#3ddc84"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#3ddc84" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#3ddc84" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">6</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#7c2d12"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#7c2d12"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg></div><span class="tag g">Module 6</span><h3 style="margin-top:8px">Sidekicks</h3><p class="mute" style="margin:0">A reusable review skill.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- M1 -->
+<section class="slide" data-title="Module 1">
+  <div class="wrap">
+    <div class="mod"><svg class="hero bob" viewBox="0 0 120 150" width="92" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ffd23f"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ffd23f"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ffd23f"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ffd23f" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ffd23f" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">1</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><span class="cap">Issue #1 &middot; Origin Story</span></div>
+    <h2>I asked for a plan, and got <span class="hl">a clock</span></h2>
+    <div class="ev">
+      <div class="prompt"><div class="lab">I asked</div><div class="txt">create a project plan for me</div></div>
+      <div class="card finding">
+        <span class="tag">Artifact</span>
+        <h3 style="margin-top:8px">Rook Dispatch: first-month plan, 6 Oct to 6 Nov</h3>
+        <div class="bars">
+          <div class="bar-row"><span>1 Triage</span><div class="track"><div class="bar" style="--v:14%;margin-left:0"></div></div><b>6 to 9 Oct</b></div>
+          <div class="bar-row"><span>2 Diagnose</span><div class="track"><div class="bar red" style="--v:34%"></div></div><b>to 16 Oct</b></div>
+          <div class="bar-row"><span>3 Fix, reset</span><div class="track"><div class="bar gold" style="--v:58%"></div></div><b>to 23 Oct</b></div>
+          <div class="bar-row"><span>4 Foundations</span><div class="track"><div class="bar green" style="--v:100%"></div></div><b>to 6 Nov</b></div>
+        </div>
+        <ul class="clean" style="margin-top:12px">
+          <li><b>Default proposal:</b> restore the ping wait to 90s alone, measure for two weeks, decide by 16 Oct.</li>
+          <li><b>Goal 4:</b> weekly signals so the next problem shows up in days, not weeks.</li>
+        </ul>
+        <p class="src">From 00-rook/project-plan.md</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M2 -->
+<section class="slide" data-title="Module 2">
+  <div class="wrap">
+    <div class="mod"><svg class="hero bob" viewBox="0 0 120 150" width="92" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#2dd4bf"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#8b6cff"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#8b6cff"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#8b6cff"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#8b6cff" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#8b6cff" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">2</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#7c2d12"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#7c2d12"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><span class="cap">Issue #2 &middot; Super Hearing</span></div>
+    <h2>Tickets went from a trickle to a flood, and <span class="hl">nobody closed them</span></h2>
+    <div class="ev">
+      <div class="prompt"><div class="lab">I asked</div><div class="txt" style="font-size:14.5px">1. Pull support tickets from the Rook database, group them by theme and give me a count of issues, and delineate issues from before and after the 4.2 release. Compare those themes to our list of contradictions/omissions, and our task list .md file so that we can see if any new tasks are needed, or if we have additional context to add to existing tasks to aid in resolving them
+2. Our task list is growing, and we have added a lot of context from the initial creation of the dispatch-priorities.md file. Review what we have now, and restructure the priority list so that items are arranged in descending order based on the impact resolution will have.  provide in chat to me a table with the current order and proposed new order side by side, with any new tasks being added clearly identified.</div></div>
+      <div class="card finding">
+        <span class="tag p">Finding</span>
+        <div class="grid g2" style="margin-top:10px">
+          <div><div class="mute">Before 12 Aug</div><div class="num green">~6 a week</div><div class="mute">40 tickets, all closed</div></div>
+          <div><div class="mute">After 12 Aug</div><div class="num red">~28 a week</div><div class="mute">107 tickets, 83 open</div></div>
+        </div>
+        <ul class="clean" style="margin-top:14px">
+          <li>Two new themes start on 12 Aug: <b>callout moved on before the responder could answer</b> (15 tickets, 11 of 12 handlers) and <b>responder gone quiet</b> (30 tickets, four handlers).</li>
+          <li>None of those 45 tickets is closed.</li>
+        </ul>
+        <p class="src">From the Rook database, support_tickets, 29 Jun to 7 Sep</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M3 -->
+<section class="slide" data-title="Module 3">
+  <div class="wrap">
+    <div class="mod"><svg class="hero bob" viewBox="0 0 120 150" width="92" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ffd23f"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ff5a5a"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ff5a5a"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ff5a5a"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ff5a5a" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ff5a5a" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">3</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#111"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#111"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><span class="cap">Issue #3 &middot; Rewind</span></div>
+    <h2>It did not happen to everyone. It happened to <span class="hl">four people</span></h2>
+    <div class="ev">
+      <div class="prompt"><div class="lab">I asked</div><div class="txt">using missed pings as our main data point, Did this happen to everyone, or did it happen to some people much more than others?  how should i group responders or handlers to see a different drop?</div></div>
+      <div class="card finding">
+        <span class="tag r">Finding</span>
+        <h3 style="margin-top:8px">Missed rate, before vs after 12 Aug</h3>
+        <div class="bars">
+          <div class="bar-row"><span>The four, before</span><div class="track"><div class="bar green" style="--v:2.4%"></div></div><b>2.4%</b></div>
+          <div class="bar-row"><span>The four, after</span><div class="track"><div class="bar red" style="--v:58.9%"></div></div><b>58.9%</b></div>
+          <div class="bar-row"><span>Other 12, before</span><div class="track"><div class="bar green" style="--v:2.1%"></div></div><b>2.1%</b></div>
+          <div class="bar-row"><span>Other 12, after</span><div class="track"><div class="bar gold" style="--v:13.9%"></div></div><b>13.9%</b></div>
+        </div>
+        <h3 style="margin-top:16px">Meteor Mite, pings a week (29 Jun to 31 Aug)</h3>
+        <div class="spark">
+          <div class="c" style="--h:79%"><span>11</span></div><div class="c" style="--h:86%"><span>12</span></div><div class="c" style="--h:72%"><span>10</span></div><div class="c" style="--h:79%"><span>11</span></div><div class="c" style="--h:86%"><span>12</span></div><div class="c" style="--h:79%"><span>11</span></div><div class="c" style="--h:72%"><span>10</span></div>
+          <div class="c after" style="--h:29%"><span>4</span></div><div class="c after" style="--h:14%"><span>2</span></div><div class="c after" style="--h:7%"><span>1</span></div>
+        </div>
+        <div class="spark-lab"><div>29 Jun</div><div>6 Jul</div><div>13 Jul</div><div>20 Jul</div><div>27 Jul</div><div>3 Aug</div><div>10 Aug</div><div>17 Aug</div><div>24 Aug</div><div>31 Aug</div></div>
+        <p class="src">From the Rook database (pings, callouts) and 00-rook/data/callout-history.csv. The week of 10 Aug mixes pre and post 4.2 days.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M4 -->
+<section class="slide" data-title="Module 4">
+  <div class="wrap">
+    <div class="mod"><svg class="hero bob" viewBox="0 0 120 150" width="92" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ff5a5a"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#2dd4bf"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#2dd4bf"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#2dd4bf"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#2dd4bf" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#2dd4bf" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">4</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#6b21a8"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#6b21a8"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><span class="cap">Issue #4 &middot; X-Ray Vision</span></div>
+    <h2>The code only ever lets <span class="hl">a yes</span> raise a score</h2>
+    <div class="ev">
+      <div class="prompt"><div class="lab">I asked</div><div class="txt">Find me the part of this code that takes points off somebody when they miss a ping or turn one down. Show it to me and explain it in plain English. Then find me every single thing in this code that puts points back on.</div></div>
+      <div class="card finding">
+        <span class="tag t">Finding</span>
+        <div class="see">
+          <div class="col up"><div class="blk" style="--h:80px">+0.08</div><div style="margin-top:6px"><b>A yes</b><br><span class="mute">the only credit, in one place (offer.py)</span></div></div>
+          <div class="col down"><div class="blk" style="--h:120px">-0.12</div><div style="margin-top:6px"><b>A miss or a turn-down</b><br><span class="mute">same penalty (record_declined)</span></div></div>
+        </div>
+        <ul class="clean" style="margin-top:12px">
+          <li>A score only rises if more than <b>60%</b> of pings are taken (0.6 &times; 0.08 = 0.4 &times; 0.12).</li>
+          <li><b>No decay, no reset.</b> A quiet responder cannot recover on their own.</li>
+          <li>A miss and a turn-down are recorded separately, then scored the same.</li>
+          <li>The four hit hardest had ordinary acceptance before 4.2 (68.7 to 81.9%), so the change did not target people already turning jobs down.</li>
+        </ul>
+        <p class="src">From 00-rook/code/dispatch-routing/ (stubs only). The 2019 decay TODO was never done.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M5 -->
+<section class="slide" data-title="Module 5">
+  <div class="wrap">
+    <div class="mod"><svg class="hero bob" viewBox="0 0 120 150" width="92" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#ffd23f"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#5aa9ff"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#5aa9ff"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#5aa9ff"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#5aa9ff" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#5aa9ff" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">5</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><span class="cap">Issue #5 &middot; Super Speed</span></div>
+    <h2>From a memo to something <span class="hl">you can click</span></h2>
+    <div class="ev">
+      <div class="prompt"><div class="lab">I asked</div><div class="txt">yes make a click through</div>
+        <p class="mute" style="margin:12px 0 0;font-size:14px">It followed my first two prompts of the session: a PRD, then a one-page brief that answers Helen's memo.</p></div>
+      <div class="card finding">
+        <span class="tag b">Artifact</span>
+        <h3 style="margin-top:8px">Helen asked: "what would we actually build, from the point of view of the person it happens to?"</h3>
+        <div class="step" style="margin-top:12px"><div class="n">1</div><div><b>PRD</b><br><span class="mute">problem, solution, metrics, risks, open questions</span></div></div>
+        <div class="step" style="margin-top:12px"><div class="n">2</div><div><b>One-page brief</b><br><span class="mute">what we would build for Kip and for a quiet responder, and three decisions for Helen</span></div></div>
+        <div class="step" style="margin-top:12px"><div class="n">3</div><div><b>Click-through prototype</b><br><span class="mute">the next slide</span></div></div>
+        <p class="src">From 05-super-speed/: prd-quiet-responder-recovery.md, brief.md, clickthrough-quiet-responder.html</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- M6 -->
+<section class="slide" data-title="Module 6">
+  <div class="wrap">
+    <div class="mod"><svg class="hero bob" viewBox="0 0 120 150" width="92" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#3ddc84"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#3ddc84"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#3ddc84"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#3ddc84" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#3ddc84" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><text x="60" y="100" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="19" fill="#111" stroke="none">6</text><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#7c2d12"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#7c2d12"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><span class="cap">Issue #6 &middot; Sidekicks</span></div>
+    <h2>My review habit, <span class="hl">written down once</span></h2>
+    <div class="ev">
+      <div class="prompt"><div class="lab">I asked</div><div class="txt">I want to save a habit as something I can reuse. When I review a brief before it goes any further, here's what I actually check for:
+- It names who owns it
+- It says how we'll know it worked
+- The scope at the end matches the scope at the start
+- It explains the problem before it proposes a fix
+- It keeps the format succinct and uses bullets and numbered lists where possible for greater readability.
+- It lays out a measurement strategy for the product
+
+Turn that into a skill called review-checklist, so I can point it at any brief and get the same check every time, without me explaining it again.</div></div>
+      <div class="card finding">
+        <span class="tag g">Artifact</span>
+        <h3 style="margin-top:8px">The review-checklist skill: six checks on any brief</h3>
+        <div class="chk">
+          <div><b>1</b> Names who owns it</div><div><b>2</b> Says how we will know it worked</div>
+          <div><b>3</b> Scope at the end matches the start</div><div><b>4</b> Problem before fix</div>
+          <div><b>5</b> Succinct, bullets and lists</div><div><b>6</b> A measurement strategy</div>
+        </div>
+        <p style="margin-top:12px">Each check is marked Pass, Partial or Fail with evidence, then a verdict and the top 3 fixes.</p>
+        <p class="src">From .claude/skills/review-checklist/SKILL.md</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROTOTYPE -->
+<section class="slide" data-title="The fix, clickable">
+  <div class="wrap">
+    <span class="pow2"><svg viewBox="0 0 260 104" width="170" role="img" aria-label="TRY IT!"><polygon points="219.3,52.0 249.0,65.0 205.1,69.9 211.2,86.8 167.1,82.1 147.6,97.5 117.3,84.8 78.5,93.8 71.5,77.0 25.7,76.9 44.3,61.3 6.0,52.0 44.3,42.7 25.7,27.1 71.5,27.0 78.5,10.2 117.3,19.2 147.6,6.5 167.1,21.9 211.2,17.2 205.1,34.1 249.0,39.0" fill="#ffd23f" stroke="#111" stroke-width="4" stroke-linejoin="round"/><text x="130" y="64" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="38" letter-spacing="1" fill="#111"  paint-order="stroke">TRY IT!</text></svg></span>
+    <p class="kicker">The fix, through my prototype</p>
+    <h2>What <span class="hl">Kip</span> and a <span class="hl">quiet responder</span> would see</h2>
+    <p class="lead" style="margin-bottom:14px">Try it. Switch between <b>Today (4.2)</b> and <b>Proposed</b>, then open the responder phone app and press <b>Simulate a ping</b>. Let the countdown run out to see a miss, or tap Take it or Turn down for next steps. <b>My last month</b> shows Meteor Mite's real counts.</p>
+    <div class="frame"><iframe title="Click-through prototype" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;title&gt;Rook Dispatch click-through&lt;/title&gt;
+&lt;style&gt;
+  :root{--bg:#f4f5f7;--card:#fff;--ink:#1c2330;--mute:#667085;--line:#e1e4ea;--accent:#2457d6;--ok:#17803d;--warn:#b45309;--bad:#b42318;--okbg:#e7f6ec;--warnbg:#fff4e0;--badbg:#fdeceb}
+  @media (prefers-color-scheme:dark){:root{--bg:#14171d;--card:#1d222b;--ink:#e8ebf0;--mute:#9aa3b2;--line:#2e3542;--accent:#6b93f5;--ok:#4cc27a;--warn:#f0a94a;--bad:#f2766b;--okbg:#17301f;--warnbg:#3a2b12;--badbg:#3a1a18}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,Segoe UI,sans-serif}
+  header{padding:16px;border-bottom:1px solid var(--line);background:var(--card)}
+  h1{font-size:17px;margin:0 0 2px}
+  header p{margin:0;color:var(--mute);font-size:13px}
+  .bar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;align-items:center}
+  .tab,.seg button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 14px;border-radius:8px;cursor:pointer;font:inherit}
+  .tab.on,.seg button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .seg{display:flex;gap:0;margin-left:auto}
+  .seg button{border-radius:0}.seg button:first-child{border-radius:8px 0 0 8px}.seg button:last-child{border-radius:0 8px 8px 0}
+  main{padding:0 16px 40px;max-width:1000px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:300px 1fr;gap:14px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+  .co{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;font:inherit}
+  .co.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+  .co b{display:block}.co span{font-size:12px;color:var(--mute)}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
+  .t-ok{background:var(--okbg);color:var(--ok)}.t-warn{background:var(--warnbg);color:var(--warn)}.t-bad{background:var(--badbg);color:var(--bad)}
+  .tl{list-style:none;margin:12px 0;padding:0 0 0 18px;border-left:2px solid var(--line)}
+  .tl li{position:relative;margin:0 0 14px;padding-left:10px}
+  .tl li::before{content:&quot;&quot;;position:absolute;left:-25px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--mute)}
+  .tl li.ok::before{background:var(--ok)}.tl li.warn::before{background:var(--warn)}.tl li.bad::before{background:var(--bad)}
+  .tl small{display:block;color:var(--mute)}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:9px 16px;font:inherit;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .alert{background:var(--badbg);border:1px solid var(--bad);color:var(--bad);border-radius:8px;padding:10px 12px;margin:10px 0}
+  .empty{color:var(--mute);padding:30px 0;text-align:center}
+  .wrap{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+  .phone{width:300px;min-height:520px;border:8px solid #222;border-radius:32px;background:var(--card);padding:18px 16px;display:flex;flex-direction:column}
+  .phone{background:linear-gradient(180deg,#2b1b6b 0,#4b2bb3 150px,var(--card) 150px);padding-top:16px}
+  .phone h2{font-size:16px;margin:0 0 4px}
+  .hero{display:flex;gap:12px;align-items:center;color:#fff;margin-bottom:22px}
+  .hero svg{flex:none;border-radius:50%;border:3px solid #ffd23f;background:#1b1240}
+  .hero h2{color:#fff;font-size:18px;margin:0}
+  .hero small{color:#e0d8ff}
+  .pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:12px;font-weight:700;margin:0 4px 4px 0;color:#fff}
+  .p-flight{background:#2f80ed}.p-structural-entry{background:#8d5524}.p-hazmat-tolerant{background:#c2410c}.p-cold-weather{background:#0e9ec2}.p-aquatic{background:#0b7a75}.p-crowd-management{background:#7c3aed}.p-de-escalation{background:#be185d}
+  .onduty{display:inline-block;background:#22c55e;color:#06210f;font-weight:700;font-size:11px;padding:1px 9px;border-radius:99px}
+  .skills{margin-top:6px}.skills b{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
+  .phone .btn{background:#6d3df2}.phone .btn.ghost{background:transparent;color:var(--ink)}
+  .phone .ring{color:#6d3df2}.phone .meter i{background:linear-gradient(90deg,#f59e0b,#6d3df2)}
+  /* COMIC BOOK THEME (phone only) */
+  .phone{color:#111;border:6px solid #111;border-radius:28px;box-shadow:6px 6px 0 #111;
+    background:radial-gradient(#f2b600 1.7px,transparent 1.9px) 0 0/10px 10px,#ffe14d;padding:14px}
+  .phone p,.phone small,.phone .skills b,.phone label.sp{color:#111!important}
+  .phone h2{font-family:Impact,&quot;Arial Black&quot;,sans-serif;font-weight:400;text-transform:uppercase;letter-spacing:.04em;font-size:20px;color:#111}
+  .phone .hero{background:#6d3df2;border:3px solid #111;box-shadow:4px 4px 0 #111;padding:8px 10px;border-radius:6px;margin-bottom:12px;transform:rotate(-1deg)}
+  .phone .hero h2{color:#fff;text-shadow:2px 2px 0 #111;font-size:22px}
+  .phone .hero small{color:#ffe14d!important;font-weight:700}
+  .phone .hero svg{border:3px solid #111;background:#ffe14d}
+  .phone .onduty{border:2px solid #111;box-shadow:2px 2px 0 #111}
+  .phone .pill{border:2px solid #111;box-shadow:2px 2px 0 #111;text-shadow:1px 1px 0 #111;font-family:Impact,&quot;Arial Black&quot;,sans-serif;font-weight:400;letter-spacing:.04em;text-transform:uppercase}
+  .phone .btn{background:#ef4444;color:#fff;border:3px solid #111;box-shadow:3px 3px 0 #111;border-radius:6px;font-family:Impact,&quot;Arial Black&quot;,sans-serif;letter-spacing:.06em;text-transform:uppercase;font-weight:400;font-size:16px}
+  .phone .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #111}
+  .phone .btn.ghost{background:#fff;color:#111}
+  .phone .card{background:#fff;color:#111;border:3px solid #111;border-radius:4px;box-shadow:3px 3px 0 #111}
+  .phone .card a{color:#6d3df2;font-weight:700}
+  .phone .ring{font-family:Impact,&quot;Arial Black&quot;,sans-serif;font-weight:400;color:#ef4444;-webkit-text-stroke:2px #111;text-shadow:4px 4px 0 #111;background:#fff;border:3px solid #111;box-shadow:4px 4px 0 #111;border-radius:6px;margin:10px 0 12px;padding:2px 0;font-size:56px}
+  .phone .meter{height:16px;border:3px solid #111;border-radius:4px;background:#fff}
+  .phone .meter i{background:repeating-linear-gradient(45deg,#ef4444 0 8px,#ff8a8a 8px 16px)}
+  /* COMIC BOOK THEME (handler console + top bar) */
+  /* Handler console: functionality first, only light superhero touches */
+  #handler .hq{display:flex;align-items:center;gap:8px;margin:0 0 12px;color:var(--mute);font-size:13px}
+  #handler .hq b{font-weight:600;color:var(--ink)}
+  #handler .co{border:2px solid #111;border-radius:8px}
+  #handler .co.on{box-shadow:none;background:#fff4c2;border-color:#111}
+  #handler .tag{border:1.5px solid #111;color:#111;font-weight:700}
+  #handler .t-ok{background:#bbf7d0}#handler .t-warn{background:#ddd6fe}#handler .t-bad{background:#fecaca}
+  #handler .card{border:2px solid #111;border-radius:8px}
+  #handler .tl li::before{width:12px;height:12px;left:-25px;top:4px;border:2px solid #111}
+  #handler .tl li.ok::before{background:#22c55e}#handler .tl li.warn::before{background:#a78bfa}#handler .tl li.bad::before{background:#ef4444}
+  #handler .alert{border:2px solid var(--bad);font-weight:600}
+  .burst{display:block;width:100%;height:auto;margin:0 0 6px;transform:rotate(-3deg)}
+  .bubble{position:relative;background:#fff;border:3px solid #111;border-radius:18px;padding:8px 12px;margin:10px 0 16px;font-weight:600;box-shadow:3px 3px 0 #111}
+  .bubble::after{content:&quot;&quot;;position:absolute;left:30px;bottom:-14px;width:16px;height:16px;background:#fff;border-right:3px solid #111;border-bottom:3px solid #111;transform:rotate(45deg) skew(10deg,10deg)}
+  .phone .row{margin-top:auto;padding-top:10px}
+  .chip{border:2px solid #111;background:#fff;color:#111;border-radius:99px;padding:4px 11px;margin:0 4px 4px 0;font:inherit;font-size:12px;font-weight:700;cursor:pointer;box-shadow:2px 2px 0 #111}
+  .chip.on{background:#ffd23f}
+  .ring{font-size:46px;font-weight:700;text-align:center;margin:14px 0 4px}
+  .meter{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:14px}
+  .meter i{display:block;height:100%;background:var(--accent);width:100%;transition:width .2s linear}
+  .side{flex:1;min-width:260px}
+  .side h3{margin:0 0 6px;font-size:15px}
+  .side ul{margin:6px 0 0 18px;padding:0;color:var(--mute);font-size:13px}
+  .row{display:flex;gap:8px;margin-top:auto}.row .btn{flex:1}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;font-size:13px}
+  .compare div{padding:10px;border-radius:8px;border:1px solid var(--line)}
+  .compare .was{background:var(--badbg)}.compare .now{background:var(--okbg)}
+  label.sp{font-size:12px;color:var(--mute);display:flex;gap:6px;align-items:center}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;header&gt;
+  &lt;h1&gt;Rook Dispatch: quiet-responder recovery&lt;/h1&gt;
+  &lt;p&gt;Click-through prototype for Helen. Invented data, cover identities only. Not real software.&lt;/p&gt;
+&lt;/header&gt;
+
+&lt;div class=&quot;bar&quot;&gt;
+  &lt;button class=&quot;tab on&quot; data-tab=&quot;handler&quot;&gt;Handler console (Kip)&lt;/button&gt;
+  &lt;button class=&quot;tab&quot; data-tab=&quot;phone&quot;&gt;Responder phone app&lt;/button&gt;
+  &lt;div class=&quot;seg&quot; id=&quot;mode&quot;&gt;
+    &lt;button data-mode=&quot;today&quot;&gt;Today (4.2)&lt;/button&gt;
+    &lt;button data-mode=&quot;new&quot; class=&quot;on&quot;&gt;Proposed&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;main&gt;
+&lt;div id=&quot;handler&quot;&gt;
+  &lt;div class=&quot;hq&quot;&gt;&lt;svg width=&quot;22&quot; height=&quot;22&quot; viewBox=&quot;0 0 46 46&quot; stroke=&quot;#111&quot; stroke-width=&quot;3&quot; stroke-linejoin=&quot;round&quot; aria-hidden=&quot;true&quot;&gt;&lt;circle cx=&quot;23&quot; cy=&quot;23&quot; r=&quot;19&quot; fill=&quot;#ffd23f&quot;/&gt;&lt;path d=&quot;M11 23c0-9 5-14 12-14s12 5 12 14&quot; fill=&quot;none&quot; stroke-width=&quot;4&quot;/&gt;&lt;rect x=&quot;6&quot; y=&quot;20&quot; width=&quot;6&quot; height=&quot;10&quot; rx=&quot;2&quot; fill=&quot;#ef4444&quot;/&gt;&lt;rect x=&quot;34&quot; y=&quot;20&quot; width=&quot;6&quot; height=&quot;10&quot; rx=&quot;2&quot; fill=&quot;#ef4444&quot;/&gt;&lt;/svg&gt;&lt;span&gt;&lt;b&gt;Dispatch HQ&lt;/b&gt; · Handler console · Kip&lt;/span&gt;&lt;/div&gt;
+  &lt;div class=&quot;grid&quot;&gt;
+    &lt;div&gt;
+      &lt;button class=&quot;co on&quot; data-co=&quot;0&quot;&gt;&lt;b&gt;Callout 8841 Southport&lt;/b&gt;&lt;span&gt;structural-entry, cold-weather&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;tag t-ok&quot;&gt;Taken&lt;/span&gt;&lt;/button&gt;
+      &lt;button class=&quot;co&quot; data-co=&quot;1&quot;&gt;&lt;b&gt;Callout 8842 Riverside&lt;/b&gt;&lt;span&gt;hazmat-tolerant&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;tag t-warn&quot;&gt;Moved on twice&lt;/span&gt;&lt;/button&gt;
+      &lt;button class=&quot;co&quot; data-co=&quot;2&quot;&gt;&lt;b&gt;Callout 8843 Kingsbridge&lt;/b&gt;&lt;span&gt;aquatic&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;tag t-bad&quot;&gt;Nobody took it&lt;/span&gt;&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;card&quot; id=&quot;detail&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;div id=&quot;phone&quot; hidden&gt;
+  &lt;div class=&quot;wrap&quot;&gt;
+    &lt;div class=&quot;phone&quot; id=&quot;screen&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;side card&quot;&gt;
+      &lt;h3&gt;What to look at&lt;/h3&gt;
+      &lt;div id=&quot;pside&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/main&gt;
+
+&lt;script&gt;
+const WAIT_TODAY=60, WAIT_NEW=90;
+let mode=&quot;new&quot;, co=0, tab=&quot;handler&quot;;
+const $=s=&gt;document.querySelector(s);
+
+const callouts=[
+ {id:8841,area:&quot;Southport&quot;,
+  today:[[&quot;ok&quot;,&quot;Callout created&quot;,&quot;14:02:10&quot;],[&quot;bad&quot;,&quot;Moved on from first responder&quot;,&quot;14:03:10&quot;,&quot;No reason shown. Handler cannot tell if they were asked.&quot;],[&quot;ok&quot;,&quot;Taken by The Gale&quot;,&quot;14:03:41&quot;]],
+  nw:[[&quot;ok&quot;,&quot;Callout created&quot;,&quot;14:02:10&quot;],[&quot;warn&quot;,&quot;Offered to Meteor Mite, no answer in 90s&quot;,&quot;14:03:40&quot;],[&quot;ok&quot;,&quot;Offered to The Gale, taken&quot;,&quot;14:04:02&quot;]],
+  status:&quot;Taken&quot;},
+ {id:8842,area:&quot;Riverside&quot;,
+  today:[[&quot;ok&quot;,&quot;Callout created&quot;,&quot;09:40:00&quot;],[&quot;bad&quot;,&quot;Moved on&quot;,&quot;09:41:00&quot;,&quot;No reason shown.&quot;],[&quot;bad&quot;,&quot;Moved on&quot;,&quot;09:42:00&quot;,&quot;No reason shown.&quot;],[&quot;ok&quot;,&quot;Taken by Sgt. Falkirk&quot;,&quot;09:42:20&quot;]],
+  nw:[[&quot;ok&quot;,&quot;Callout created&quot;,&quot;09:40:00&quot;],[&quot;warn&quot;,&quot;Offered to Farlight, no answer in 90s&quot;,&quot;09:41:30&quot;],[&quot;warn&quot;,&quot;Offered to Corporal Ashgrove, turned down&quot;,&quot;09:41:52&quot;,&quot;A turn-down is recorded separately from a miss.&quot;],[&quot;ok&quot;,&quot;Offered to Sgt. Falkirk, taken&quot;,&quot;09:42:20&quot;]],
+  status:&quot;Moved on twice&quot;},
+ {id:8843,area:&quot;Kingsbridge&quot;,
+  today:[[&quot;ok&quot;,&quot;Callout created&quot;,&quot;16:15:00&quot;],[&quot;bad&quot;,&quot;Moved on&quot;,&quot;16:16:00&quot;],[&quot;bad&quot;,&quot;Moved on&quot;,&quot;16:17:00&quot;],[&quot;bad&quot;,&quot;List ran out. Nothing happens.&quot;,&quot;16:17:00&quot;,&quot;The callout sits with no responder and no alert.&quot;]],
+  nw:[[&quot;ok&quot;,&quot;Callout created&quot;,&quot;16:15:00&quot;],[&quot;warn&quot;,&quot;Offered to Vesper, no answer in 90s&quot;,&quot;16:16:30&quot;],[&quot;warn&quot;,&quot;Offered to The Undertow, no answer in 90s&quot;,&quot;16:18:00&quot;],[&quot;bad&quot;,&quot;List ran out. Alert raised to handler.&quot;,&quot;16:18:00&quot;,&quot;Handler can re-offer in one click.&quot;]],
+  status:&quot;Nobody took it&quot;,alert:true}
+];
+
+function renderHandler(){
+  const c=callouts[co], ev=mode===&quot;new&quot;?c.nw:c.today;
+  const TG={&quot;Taken&quot;:&quot;t-ok&quot;,&quot;Moved on twice&quot;:&quot;t-warn&quot;,&quot;Nobody took it&quot;:&quot;t-bad&quot;}[c.status];
+  let h=`&lt;h3 style=&quot;margin:0 0 4px&quot;&gt;Callout ${c.id} · ${c.area} &lt;span class=&quot;tag ${TG}&quot; style=&quot;vertical-align:2px&quot;&gt;${c.status}&lt;/span&gt;&lt;/h3&gt;`;
+  if(mode===&quot;new&quot;) h+=`&lt;div class=&quot;card&quot; style=&quot;margin:10px 0 0;font-size:13px;color:var(--mute)&quot;&gt;Ping wait: &lt;b&gt;${WAIT_NEW}s&lt;/b&gt; per responder.&lt;/div&gt;`;
+  h+=`&lt;ul class=&quot;tl&quot;&gt;`+ev.map(e=&gt;`&lt;li class=&quot;${e[0]}&quot;&gt;&lt;b&gt;${e[1]}&lt;/b&gt; &lt;small&gt;${e[2]}${e[3]?&quot; · &quot;+e[3]:&quot;&quot;}&lt;/small&gt;&lt;/li&gt;`).join(&quot;&quot;)+`&lt;/ul&gt;`;
+  if(c.alert){
+    h+=mode===&quot;new&quot;
+     ?`&lt;div class=&quot;alert&quot;&gt;&lt;b&gt;No responder took this callout.&lt;/b&gt; &lt;div style=&quot;margin-top:8px&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reoffer&quot;&gt;Re-offer&lt;/button&gt;&lt;/div&gt;&lt;div id=&quot;rres&quot;&gt;&lt;/div&gt;&lt;/div&gt;`
+     :`&lt;div class=&quot;alert&quot;&gt;Nothing here tells you the callout is uncovered.&lt;/div&gt;`;
+  }
+  $(&quot;#detail&quot;).innerHTML=h;
+  const r=$(&quot;#reoffer&quot;); if(r) r.onclick=()=&gt;{$(&quot;#rres&quot;).innerHTML=&quot;&lt;p style=&#x27;margin:8px 0 0;color:var(--ok)&#x27;&gt;Re-offered. You will see replies here.&lt;/p&gt;&quot;;r.disabled=true;
+    $(&quot;.tl&quot;).insertAdjacentHTML(&quot;beforeend&quot;,&quot;&lt;li class=&#x27;ok&#x27;&gt;&lt;b&gt;Re-offered by Kip&lt;/b&gt; &lt;small&gt;16:18:40 · Manual override, logged in the routing-override audit log.&lt;/small&gt;&lt;/li&gt;&quot;)};
+}
+
+/* phone */
+let ps=&quot;idle&quot;, t=0, timer=null, demo=true;
+function stop(){clearInterval(timer);timer=null}
+const stepsTaken=`&lt;div class=&quot;card&quot; style=&quot;font-size:13px;margin-bottom:10px&quot;&gt;&lt;b&gt;Next steps&lt;/b&gt;&lt;ol style=&quot;margin:6px 0 0 18px;padding:0&quot;&gt;&lt;li&gt;Open the callout details: where, what is needed, who you are meeting.&lt;/li&gt;&lt;li&gt;Start travel so your handler can see you are on your way.&lt;/li&gt;&lt;li&gt;Check in when you arrive.&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;`;
+const WEEKS=[[&quot;10 Aug&quot;,4,2,4],[&quot;17 Aug&quot;,1,1,2],[&quot;24 Aug&quot;,0,1,1],[&quot;31 Aug&quot;,0,0,1]];
+const seg=(n,c)=&gt;n?`&lt;div style=&quot;height:${n*13}px;background:${c};border:2px solid #111;border-bottom:0&quot;&gt;&lt;/div&gt;`:&quot;&quot;;
+const summaryHtml=()=&gt;`&lt;div class=&quot;card&quot; style=&quot;font-size:13px;margin-bottom:10px&quot;&gt;&lt;b&gt;Pings by week&lt;/b&gt; &lt;small&gt;10 Aug to 6 Sep&lt;/small&gt;
+ &lt;div style=&quot;display:flex;gap:14px;align-items:flex-end;height:140px;margin:8px 0 2px;border-bottom:3px solid #111;padding:0 6px&quot;&gt;${WEEKS.map(w=&gt;`&lt;div style=&quot;flex:1;display:flex;flex-direction:column-reverse&quot;&gt;${seg(w[1],&quot;#22c55e&quot;)}${seg(w[2],&quot;#60a5fa&quot;)}${seg(w[3],&quot;#c4b5fd&quot;)}&lt;/div&gt;`).join(&quot;&quot;)}&lt;/div&gt;
+ &lt;div style=&quot;display:flex;gap:14px;padding:0 6px;font-size:11px&quot;&gt;${WEEKS.map(w=&gt;`&lt;div style=&quot;flex:1;text-align:center&quot;&gt;${w[0]}&lt;/div&gt;`).join(&quot;&quot;)}&lt;/div&gt;
+ &lt;div style=&quot;margin-top:8px;font-size:11px&quot;&gt;&lt;span style=&quot;background:#22c55e;border:2px solid #111;padding:0 7px&quot;&gt;&amp;nbsp;&lt;/span&gt; Taken &amp;nbsp;&lt;span style=&quot;background:#60a5fa;border:2px solid #111;padding:0 7px&quot;&gt;&amp;nbsp;&lt;/span&gt; Turned down &amp;nbsp;&lt;span style=&quot;background:#c4b5fd;border:2px solid #111;padding:0 7px&quot;&gt;&amp;nbsp;&lt;/span&gt; No answer in time&lt;/div&gt;&lt;/div&gt;
+`;
+const pill=t=&gt;`&lt;span class=&quot;pill p-${t}&quot;&gt;${t}&lt;/span&gt;`;
+const avatar=()=&gt;`&lt;svg width=&quot;68&quot; height=&quot;68&quot; viewBox=&quot;0 0 64 64&quot; aria-label=&quot;Meteor Mite avatar&quot; stroke=&quot;#111&quot; stroke-width=&quot;2.2&quot; stroke-linejoin=&quot;round&quot; stroke-linecap=&quot;round&quot;&gt;&lt;path d=&quot;M1 63l5-17 14-6 12 4 12-4 14 6 5 17z&quot; fill=&quot;#dc2626&quot;/&gt;&lt;path d=&quot;M20 40l12 4 12-4 2 6-14 5-14-5z&quot; fill=&quot;#111&quot;/&gt;&lt;path d=&quot;M1 63l5-17 6 2-3 15zM63 63l-5-17-6 2 3 15z&quot; fill=&quot;#111&quot;/&gt;&lt;path d=&quot;M28 36h8v6l-4 3-4-3z&quot; fill=&quot;#f4c7a3&quot;/&gt;&lt;circle cx=&quot;32&quot; cy=&quot;52&quot; r=&quot;7&quot; fill=&quot;#ffd23f&quot;/&gt;&lt;path d=&quot;M33 46l-4 7h3l-1 5 5-8h-3z&quot; fill=&quot;#111&quot; stroke-width=&quot;1.2&quot;/&gt;&lt;path d=&quot;M17 26c0-11 7-17 16-17 10 0 16 6 15 17 0 9-5 15-13 15h-4c-8 0-14-6-14-15z&quot; fill=&quot;#f4c7a3&quot;/&gt;&lt;path d=&quot;M13 30C9 14 18 5 33 5c13 0 22 8 18 25-1-6-3-9-5-11-8 3-18 3-27-1-3 3-5 7-6 12z&quot; fill=&quot;#7c2d12&quot;/&gt;&lt;path d=&quot;M15 30c-4 6-3 12 3 14-4-4-3-9-3-14zM49 30c4 6 3 12-3 14 4-4 3-9 3-14z&quot; fill=&quot;#7c2d12&quot; stroke-width=&quot;1.6&quot;/&gt;&lt;path d=&quot;M15 27l5-4 8 2 4-1 4 1 8-2 5 4c-1 5-6 8-11 7l-6-2-6 2c-5 1-10-2-11-7z&quot; fill=&quot;#111&quot;/&gt;&lt;path d=&quot;M21 28l6-1.2-.8 2.8-5 .4zM43 28l-6-1.2.8 2.8 5 .4z&quot; fill=&quot;#fff&quot; stroke-width=&quot;1.4&quot;/&gt;&lt;path d=&quot;M28 37c2 1.6 6 1.6 8 0&quot; fill=&quot;none&quot;/&gt;&lt;/svg&gt;`;
+const burst=(txt,fill,ink)=&gt;{let p=[];for(let i=0;i&lt;28;i++){const a=i/28*Math.PI*2,k=i%2?1:.74;p.push((130+k*124*Math.cos(a)).toFixed(1)+&quot;,&quot;+(52+k*46*Math.sin(a)).toFixed(1))}
+  return `&lt;svg class=&quot;burst&quot; viewBox=&quot;0 0 260 104&quot; role=&quot;img&quot; aria-label=&quot;${txt}&quot;&gt;&lt;polygon points=&quot;${p.join(&quot; &quot;)}&quot; fill=&quot;${fill}&quot; stroke=&quot;#111&quot; stroke-width=&quot;4&quot; stroke-linejoin=&quot;round&quot;/&gt;&lt;text x=&quot;130&quot; y=&quot;64&quot; text-anchor=&quot;middle&quot; font-family=&quot;Impact,&#x27;Arial Black&#x27;,sans-serif&quot; font-size=&quot;30&quot; letter-spacing=&quot;1&quot; fill=&quot;${ink}&quot; stroke=&quot;#111&quot; stroke-width=&quot;${ink===&quot;#fff&quot;?1.5:0}&quot; paint-order=&quot;stroke&quot;&gt;${txt}&lt;/text&gt;&lt;/svg&gt;`};
+const BURSTS={ping:[&quot;NEW CALLOUT!&quot;,&quot;#ef4444&quot;,&quot;#fff&quot;],taken:[&quot;YOU GOT IT!&quot;,&quot;#22c55e&quot;,&quot;#fff&quot;],down:[&quot;PASSED ON&quot;,&quot;#60a5fa&quot;,&quot;#111&quot;],missed:[&quot;MISSED&quot;,&quot;#c4b5fd&quot;,&quot;#111&quot;],why:[&quot;HOW IT WORKS&quot;,&quot;#ffd23f&quot;,&quot;#111&quot;],summary:[&quot;YOUR MONTH&quot;,&quot;#ffd23f&quot;,&quot;#111&quot;]};
+const heroHead=sub=&gt;`&lt;div class=&quot;hero&quot;&gt;${avatar()}&lt;div&gt;&lt;h2&gt;Meteor Mite&lt;/h2&gt;${sub}&lt;/div&gt;&lt;/div&gt;`;
+function phoneScreen(){
+  const W=mode===&quot;new&quot;?WAIT_NEW:WAIT_TODAY;
+  let h=&quot;&quot;, side=&quot;&quot;;
+  if(ps===&quot;idle&quot;){
+    h=`${heroHead(&#x27;&lt;span class=&quot;onduty&quot;&gt;ON DUTY&lt;/span&gt;&#x27;)}
+       &lt;div class=&quot;skills&quot;&gt;&lt;b&gt;Your skills&lt;/b&gt;${pill(&quot;flight&quot;)}${pill(&quot;cold-weather&quot;)}${pill(&quot;de-escalation&quot;)}&lt;/div&gt;
+       &lt;p style=&quot;margin-top:14px;color:var(--mute)&quot;&gt;${mode===&quot;new&quot;?&quot;No pings since 5 Sep.&quot;:&quot;Nothing yet.&quot;}&lt;/p&gt;
+       ${mode===&quot;new&quot;?`&lt;div class=&quot;card&quot; style=&quot;margin-top:10px;font-size:13px&quot;&gt;You have been quiet for a while. &lt;b&gt;We&#x27;ll make sure you&#x27;re considered for your next callout in your area.&lt;/b&gt; &lt;a href=&quot;#&quot; id=&quot;why&quot;&gt;What affects this?&lt;/a&gt;&lt;/div&gt;`:&quot;&quot;}
+       ${mode===&quot;new&quot;?`&lt;div class=&quot;row&quot; style=&quot;margin-top:auto&quot;&gt;&lt;button class=&quot;btn ghost&quot; id=&quot;sum&quot; style=&quot;width:100%&quot;&gt;My last month&lt;/button&gt;&lt;/div&gt;`:&quot;&quot;}&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;go&quot;&gt;Simulate a ping&lt;/button&gt;&lt;/div&gt;`;
+    side=mode===&quot;new&quot;
+     ?&quot;&lt;p&gt;This responder was starved after 4.2. The app tells them a way back, instead of silence.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;A quiet-responder rule gives them one ping at fair rank.&lt;/li&gt;&lt;li&gt;No other responders are shown.&lt;/li&gt;&lt;/ul&gt;&quot;
+     :&quot;&lt;p&gt;Today the app says nothing about being quiet. They just stop getting pings.&lt;/p&gt;&quot;;
+  }else if(ps===&quot;ping&quot;){
+    h=`${heroHead(&#x27;&lt;small&gt;New callout&lt;/small&gt;&#x27;)}
+       &lt;h2 style=&quot;margin-top:4px&quot;&gt;Callout 8842 · Riverside&lt;/h2&gt;&lt;div class=&quot;skills&quot;&gt;&lt;b&gt;Skills needed&lt;/b&gt;${pill(&quot;hazmat-tolerant&quot;)}&lt;/div&gt;
+       &lt;div class=&quot;ring&quot; id=&quot;ring&quot;&gt;${Math.ceil(t)}s&lt;/div&gt;
+       ${mode===&quot;new&quot;?`&lt;div class=&quot;meter&quot;&gt;&lt;i id=&quot;bar&quot; style=&quot;width:${t/W*100}%&quot;&gt;&lt;/i&gt;&lt;/div&gt;&lt;p style=&quot;text-align:center;font-size:13px;color:var(--mute)&quot;&gt;Offered for ${W} seconds&lt;/p&gt;`:`&lt;p style=&quot;text-align:center;font-size:13px;color:var(--mute)&quot;&gt;&amp;nbsp;&lt;/p&gt;`}
+       &lt;label class=&quot;sp&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;demo&quot; ${demo?&quot;checked&quot;:&quot;&quot;}&gt; Demo speed (5x)&lt;/label&gt;
+       &lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn ghost&quot; id=&quot;down&quot;&gt;Turn down&lt;/button&gt;&lt;button class=&quot;btn&quot; id=&quot;take&quot;&gt;Take it&lt;/button&gt;&lt;/div&gt;`;
+    side=`&lt;p&gt;Ping wait is &lt;b&gt;${W}s&lt;/b&gt;. ${mode===&quot;new&quot;?&quot;The countdown is visible, so the responder knows how long they have.&quot;:&quot;Today there is no countdown shown, and the wait is 60s.&quot;}&lt;/p&gt;&lt;p&gt;Let it run out to see a miss.&lt;/p&gt;`;
+  }else if(ps===&quot;taken&quot;){
+    h=mode===&quot;new&quot;
+     ?`${heroHead(&#x27;&#x27;)}&lt;h2&gt;You took it&lt;/h2&gt;&lt;p style=&quot;color:var(--ok)&quot;&gt;Callout 8842 is yours.&lt;/p&gt;&lt;div class=&quot;bubble&quot;&gt;Thanks. You&#x27;re back in normal rotation.&lt;/div&gt;${stepsTaken}&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`
+     :`${heroHead(&#x27;&#x27;)}&lt;h2&gt;You took it&lt;/h2&gt;&lt;p style=&quot;color:var(--ok)&quot;&gt;Callout 8842 is yours.&lt;/p&gt;${stepsTaken}&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`;
+    side=&quot;&lt;p&gt;A yes raises score (+0.08).&lt;/p&gt;&quot;;
+  }else if(ps===&quot;down&quot;){
+    h=`${heroHead(&#x27;&#x27;)}&lt;h2&gt;Turned down&lt;/h2&gt;&lt;p&gt;Passed to the next responder.&lt;/p&gt;${mode===&quot;new&quot;?`&lt;div class=&quot;card&quot; style=&quot;font-size:13px&quot;&gt;Turning down is recorded separately from missing a ping.&lt;/div&gt;`:&quot;&quot;}
+       &lt;div class=&quot;card&quot; style=&quot;font-size:13px;margin-top:10px&quot;&gt;&lt;b&gt;Next steps&lt;/b&gt;&lt;ul style=&quot;margin:6px 0 0 18px;padding:0&quot;&gt;&lt;li&gt;You stay on duty. Your next callout is offered as normal.&lt;/li&gt;${mode===&quot;new&quot;?`&lt;li&gt;Optional: tell your handler why.&lt;/li&gt;&lt;/ul&gt;&lt;div style=&quot;margin-top:8px&quot;&gt;&lt;button class=&quot;chip&quot;&gt;Too far&lt;/button&gt;&lt;button class=&quot;chip&quot;&gt;Wrong skills&lt;/button&gt;&lt;button class=&quot;chip&quot;&gt;Going off duty&lt;/button&gt;&lt;button class=&quot;chip&quot;&gt;Something else&lt;/button&gt;&lt;/div&gt;&lt;div id=&quot;chipres&quot; style=&quot;margin-top:6px;font-weight:700&quot;&gt;&lt;/div&gt;`:`&lt;/ul&gt;`}&lt;/div&gt;&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`;
+    side=&quot;&lt;p&gt;A turn-down is a real choice, and it still lowers recent acceptance.&lt;/p&gt;&quot;;
+  }else if(ps===&quot;missed&quot;){
+    h=mode===&quot;new&quot;
+     ?`${heroHead(&#x27;&#x27;)}&lt;h2&gt;You missed a callout&lt;/h2&gt;&lt;p&gt;Callout 8842 was offered for &lt;b&gt;${W} seconds&lt;/b&gt; and moved on.&lt;/p&gt;&lt;div class=&quot;card&quot; style=&quot;font-size:13px&quot;&gt;A miss counts for less than turning down, and it fades over time. Your next callout in your area is still yours to take.&lt;br&gt;&lt;a href=&quot;#&quot; id=&quot;why&quot;&gt;What affects how often I am pinged?&lt;/a&gt;&lt;/div&gt;&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`
+     :`${heroHead(&#x27;&#x27;)}&lt;h2&gt;Callout gone&lt;/h2&gt;&lt;p&gt;It has been offered to someone else.&lt;/p&gt;&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`;
+    side=mode===&quot;new&quot;
+     ?&quot;&lt;p&gt;Compare with today: the responder is told what happened, for how long, and what it does to them.&lt;/p&gt;&quot;
+     :`&lt;p&gt;Today: no reason, no length of time, no consequence shown. A miss still costs the same as a turn-down (-0.12), and nothing raises the score but a yes.&lt;/p&gt;`;
+  }else if(ps===&quot;summary&quot;){
+    h=`${heroHead(&#x27;&lt;small&gt;My last month&lt;/small&gt;&#x27;)}${summaryHtml()}&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`;
+    side=&quot;&lt;p&gt;Real counts for Meteor Mite from the Rook database. Data stops on 6 Sep, so this is the last four weeks available, not the last calendar month.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;Counts only, no scores.&lt;/li&gt;&lt;/ul&gt;&quot;;
+  }else if(ps===&quot;why&quot;){
+    h=`${heroHead(&#x27;&#x27;)}&lt;h2&gt;How pings work&lt;/h2&gt;&lt;p style=&quot;font-size:13px&quot;&gt;Callouts go to responders ranked by distance, availability, skills and how often you take recent pings.&lt;/p&gt;&lt;ul style=&quot;font-size:13px&quot;&gt;&lt;li&gt;Taking a ping helps.&lt;/li&gt;&lt;li&gt;Turning down or missing one lowers it a little.&lt;/li&gt;&lt;li&gt;The effect fades over time.&lt;/li&gt;&lt;li&gt;If you have been quiet, you will get a fair chance.&lt;/li&gt;&lt;/ul&gt;&lt;div class=&quot;row&quot;&gt;&lt;button class=&quot;btn&quot; id=&quot;reset&quot;&gt;Back&lt;/button&gt;&lt;/div&gt;`;
+    side=&quot;&lt;p&gt;Plain language, no scores, no formula.&lt;/p&gt;&quot;;
+  }
+  const B=BURSTS[ps]; if(B) h=h.replace(&quot;&lt;/div&gt;&lt;/div&gt;&quot;,&quot;&lt;/div&gt;&lt;/div&gt;&quot;+burst(...B));
+  $(&quot;#screen&quot;).innerHTML=h; $(&quot;#pside&quot;).innerHTML=side;
+  bindPhone();
+}
+function bindPhone(){
+  const g=id=&gt;document.getElementById(id);
+  if(g(&quot;sum&quot;))g(&quot;sum&quot;).onclick=()=&gt;{ps=&quot;summary&quot;;phoneScreen()};
+  if(g(&quot;go&quot;))g(&quot;go&quot;).onclick=()=&gt;{ps=&quot;ping&quot;;t=mode===&quot;new&quot;?WAIT_NEW:WAIT_TODAY;phoneScreen();run()};
+  if(g(&quot;take&quot;))g(&quot;take&quot;).onclick=()=&gt;{stop();ps=&quot;taken&quot;;phoneScreen()};
+  if(g(&quot;down&quot;))g(&quot;down&quot;).onclick=()=&gt;{stop();ps=&quot;down&quot;;phoneScreen()};
+  if(g(&quot;reset&quot;))g(&quot;reset&quot;).onclick=()=&gt;{ps=&quot;idle&quot;;phoneScreen()};
+  if(g(&quot;why&quot;))g(&quot;why&quot;).onclick=e=&gt;{e.preventDefault();ps=&quot;why&quot;;phoneScreen()};
+  document.querySelectorAll(&quot;.chip&quot;).forEach(b=&gt;b.onclick=()=&gt;{document.querySelectorAll(&quot;.chip&quot;).forEach(x=&gt;x.classList.remove(&quot;on&quot;));b.classList.add(&quot;on&quot;);g(&quot;chipres&quot;).textContent=&quot;Thanks, we&#x27;ve told your handler: &quot;+b.textContent+&quot;.&quot;});
+  if(g(&quot;demo&quot;))g(&quot;demo&quot;).onchange=e=&gt;demo=e.target.checked;
+}
+function run(){
+  stop();
+  timer=setInterval(()=&gt;{
+    t-=(demo?5:1)*0.2;
+    const W=mode===&quot;new&quot;?WAIT_NEW:WAIT_TODAY;
+    if(t&lt;=0){stop();ps=&quot;missed&quot;;phoneScreen();return}
+    const r=document.getElementById(&quot;ring&quot;),b=document.getElementById(&quot;bar&quot;);
+    if(r)r.textContent=Math.ceil(t)+&quot;s&quot;; if(b)b.style.width=(t/W*100)+&quot;%&quot;;
+  },200);
+}
+
+function show(){
+  $(&quot;#handler&quot;).hidden=tab!==&quot;handler&quot;; $(&quot;#phone&quot;).hidden=tab!==&quot;phone&quot;;
+  document.querySelectorAll(&quot;.tab&quot;).forEach(b=&gt;b.classList.toggle(&quot;on&quot;,b.dataset.tab===tab));
+  document.querySelectorAll(&quot;#mode button&quot;).forEach(b=&gt;b.classList.toggle(&quot;on&quot;,b.dataset.mode===mode));
+  document.querySelectorAll(&quot;.co&quot;).forEach(b=&gt;b.classList.toggle(&quot;on&quot;,+b.dataset.co===co));
+  renderHandler(); stop(); ps=&quot;idle&quot;; phoneScreen();
+}
+document.querySelectorAll(&quot;.tab&quot;).forEach(b=&gt;b.onclick=()=&gt;{tab=b.dataset.tab;show()});
+document.querySelectorAll(&quot;#mode button&quot;).forEach(b=&gt;b.onclick=()=&gt;{mode=b.dataset.mode;show()});
+document.querySelectorAll(&quot;.co&quot;).forEach(b=&gt;b.onclick=()=&gt;{co=+b.dataset.co;show()});
+show();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe></div>
+    <p class="foot" style="margin-top:12px">Also saved as 05-super-speed/clickthrough-quiet-responder.html. Invented callouts, cover identities only.</p>
+  </div>
+</section>
+
+<!-- THE FIX PLAN -->
+<section class="slide" data-title="The fix plan">
+  <div class="wrap">
+    <span class="pow2"><svg viewBox="0 0 260 104" width="150" role="img" aria-label="ZAP!"><polygon points="219.3,52.0 247.9,66.2 202.2,71.5 202.9,89.2 157.6,83.5 130.0,98.0 102.4,83.5 57.1,89.2 57.8,71.5 12.1,66.2 40.7,52.0 12.1,37.8 57.8,32.5 57.1,14.8 102.4,20.5 130.0,6.0 157.6,20.5 202.9,14.8 202.2,32.5 247.9,37.8" fill="#3ddc84" stroke="#111" stroke-width="4" stroke-linejoin="round"/><text x="130" y="65" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="40" letter-spacing="1" fill="#111"  paint-order="stroke">ZAP!</text></svg></span>
+    <p class="kicker">What the prototype stands on</p>
+    <h2>The prototype shows it. <span class="hl">Two steps</span> actually fix it</h2>
+    <p class="lead">A prototype changes no wait and no ranking. The fix is the change underneath, in this order.</p>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="card"><span class="tag g">Step 1 &middot; this release</span>
+        <ul class="clean" style="margin-top:10px">
+          <li>Restore the <b>90 second</b> wait.</li>
+          <li>Reset only the <b>four affected scores</b>.</li>
+          <li>Tell Supply first, because callout load shifts.</li>
+          <li>Watch for two weeks.</li>
+        </ul>
+        <p class="src">In my toy model (invented responders), 90s alone cuts misses from 19% to 4%. Real data has to confirm it.</p>
+      </div>
+      <div class="card"><span class="tag p">Step 2 &middot; 4.3</span>
+        <ul class="clean" style="margin-top:10px">
+          <li>Forgiving scoring: split a miss from a turn-down, ease scores toward neutral, one fair ping after a gap.</li>
+          <li>Handler timeline and re-offer.</li>
+          <li>Responder countdown and a plain message after a miss.</li>
+          <li>No scores shown to anyone, only counts.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px"><h3>How we would know (targets are proposals, not measured)</h3>
+      <div class="grid g3" style="font-size:15px">
+        <div>Missed rate under <b>4%</b> within 2 weeks (now 12.7%)</div>
+        <div>The four under <b>10%</b> missed, pings back within 20% of normal</div>
+        <div>45 open tickets to <b>0</b>, uncovered callouts back to about <b>5%</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILL: NEVER AGAIN -->
+<section class="slide" data-title="Not again">
+  <div class="wrap">
+    <span class="pow2"><svg viewBox="0 0 260 104" width="170" role="img" aria-label="6 CHECKS!"><polygon points="219.3,52.0 249.0,65.0 205.1,69.9 211.2,86.8 167.1,82.1 147.6,97.5 117.3,84.8 78.5,93.8 71.5,77.0 25.7,76.9 44.3,61.3 6.0,52.0 44.3,42.7 25.7,27.1 71.5,27.0 78.5,10.2 117.3,19.2 147.6,6.5 167.1,21.9 211.2,17.2 205.1,34.1 249.0,39.0" fill="#8b6cff" stroke="#111" stroke-width="4" stroke-linejoin="round"/><text x="130" y="62" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="32" letter-spacing="1" fill="#fff" stroke="#111" stroke-width="1.5" paint-order="stroke">6 CHECKS!</text></svg></span>
+    <p class="kicker">How my skill keeps this from happening again</p>
+    <h2>Every brief has to name <span class="hl">who is watching</span></h2>
+    <div class="lead-row"><p class="lead">The checklist does not make a design choice right. It makes sure someone owns the number that would show a choice was wrong, before it ships.</p><div class="hbox"><div class="bub">Six checks, every time!</div><svg class="hero bob" viewBox="0 0 120 150" width="130" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#3ddc84"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#3ddc84"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#3ddc84"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#3ddc84" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#3ddc84" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><path d="M63 83 L54 96 L60 96 L57 105 L67 91 L61 91 Z" fill="#111" stroke-width="2"/><rect x="84" y="78" width="24" height="32" rx="4" fill="#fff"/><rect x="91" y="74" width="10" height="7" rx="2" fill="#ffd23f"/><path d="M89 92 l4 4 l8 -9" fill="none" stroke="#22c55e" stroke-width="3.5"/><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#7c2d12"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#7c2d12"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 73 q10 9 20 0 z" fill="#fff" stroke-width="3"/><path d="M33 40 l15 7 M87 40 l-15 7" fill="none" stroke="#fff" stroke-width="3.5"/></g></svg></div></div>
+    <table class="map" style="margin-top:8px">
+      <tr><td><b>What went wrong in 4.2:</b> misses jumped on release day and the "mostly seasonal" read was never measured.</td><td><span class="tag">Check 2 and 6</span><br>A success measure with a baseline and a target, and a measurement plan: who reports, how often, which guardrails, what result triggers what.</td></tr>
+      <tr><td><b>Nobody was clearly watching.</b> 45 tickets sat unclosed for weeks.</td><td><span class="tag">Check 1</span><br>A named owner for the brief, the steps and the open questions.</td></tr>
+      <tr><td><b>Two changes shipped together,</b> so the data could not separate them.</td><td><span class="tag">Check 4</span><br>The problem is explained with evidence before a fix is proposed, which forces the question "what exactly are we changing and why".</td></tr>
+      <tr><td><b>Scope drifted.</b> Availability Confidence was committed for 4.2, then missing from the release notes.</td><td><span class="tag">Check 3</span><br>The scope at the end must match the scope at the start.</td></tr>
+    </table>
+    <div class="grid g3" style="margin-top:12px">
+      <div class="card stat"><div class="from">My brief, first review</div><div class="big red">1 of 6</div></div>
+      <div class="card stat"><div class="from">After the fixes (v2)</div><div class="big hl">3 of 6</div></div>
+      <div class="card"><h3>Honest limits</h3><p style="margin:0;font-size:15px">It reviews the brief, not the code. v2 still lacks my name on it and needs to be about one page. It is a practice habit and is not scheduled.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSE -->
+<section class="slide" data-title="Next">
+  <div class="wrap">
+    <p class="kicker">What I need next</p>
+    <div style="display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap"><svg class="hero bob" viewBox="0 0 120 150" width="110" role="img" aria-label="Cartoon superhero"><g stroke="#111" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M30 72 C 6 100 4 128 12 144 C 40 134 80 134 108 144 C 116 128 114 100 90 72 Z" fill="#8b6cff"/><rect x="41" y="116" width="15" height="24" rx="7" fill="#ef4444"/><rect x="64" y="116" width="15" height="24" rx="7" fill="#ef4444"/><ellipse cx="48" cy="142" rx="11" ry="6" fill="#111"/><ellipse cx="72" cy="142" rx="11" ry="6" fill="#111"/><rect x="36" y="70" width="48" height="52" rx="17" fill="#ef4444"/><rect x="36" y="107" width="48" height="8" fill="#ffd23f"/><ellipse cx="29" cy="92" rx="8" ry="15" fill="#ef4444" transform="rotate(14 29 92)"/><ellipse cx="91" cy="92" rx="8" ry="15" fill="#ef4444" transform="rotate(-14 91 92)"/><circle cx="25" cy="106" r="7" fill="#f4c7a3"/><circle cx="95" cy="106" r="7" fill="#f4c7a3"/><circle cx="60" cy="93" r="12" fill="#ffd23f"/><path d="M63 83 L54 96 L60 96 L57 105 L67 91 L61 91 Z" fill="#111" stroke-width="2"/><circle cx="60" cy="46" r="33" fill="#f4c7a3"/><path d="M27 48 C 22 14 44 4 60 4 C 78 4 100 14 93 48 C 88 30 76 22 60 22 C 44 22 34 30 27 48 Z" fill="#c2410c"/><path d="M27 48 C 22 62 25 70 32 72 C 29 62 31 54 34 48Z M93 48 C 98 62 95 70 88 72 C 91 62 89 54 86 48Z" fill="#c2410c"/><path d="M29 43 Q60 29 91 43 Q94 62 76 63 Q60 57 44 63 Q26 62 29 43 Z" fill="#111"/><ellipse cx="46" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><ellipse cx="74" cy="50" rx="9.5" ry="9" fill="#fff" stroke="none"/><circle cx="47" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="73" cy="51" r="5.2" fill="#111" stroke="none"/><circle cx="49" cy="48.5" r="1.8" fill="#fff" stroke="none"/><circle cx="75" cy="48.5" r="1.8" fill="#fff" stroke="none"/><ellipse cx="34" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><ellipse cx="86" cy="68" rx="7" ry="4.5" fill="#ff8fab" stroke="none" opacity=".9"/><path d="M50 72 q10 11 20 0 z" fill="#fff" stroke-width="3"/></g></svg><h2 style="flex:1;min-width:260px">Three decisions for <span class="hl">Helen</span>, three answers from <span class="hl">engineering</span></h2></div>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><h3>Decisions for Helen</h3>
+        <ol class="clean" style="padding-left:22px">
+          <li>Ship step 1 alone, this release.</li>
+          <li>Put the scoring fix in 4.3 scope now, and confirm after the two week read. Something has to give: start with Availability Confidence.</li>
+          <li>Send the customer note to handlers once step 1 is scheduled.</li>
+        </ol>
+      </div>
+      <div class="card"><h3>Still unknown</h3>
+        <ul class="clean">
+          <li><b>Wen Li:</b> does the 60 second clock start at send or at delivery?</li>
+          <li><b>Marcus:</b> can one score be reset, do scores survive a restart, did +0.08 and -0.12 move in 4.2?</li>
+          <li><b>Ravi:</b> data after 6 Sep, and last August.</li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin:22px 0 0"><span class="tobecont">To be continued...</span></p>
+    <p class="foot" style="margin-top:20px">Sources: Rook database, wiki and code stubs, my CLAUDE.md notes, and the six prompts.md files. Rook Industries is a fictional teaching scenario, so nothing here is a fact about the world.</p>
+  </div>
+  <svg class="sky" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="61" width="70" height="59" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="70" y="65" width="86" height="55" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="156" y="56" width="86" height="64" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="242" y="17" width="83" height="103" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="325" y="36" width="92" height="84" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="417" y="57" width="81" height="63" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="498" y="30" width="93" height="90" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="591" y="70" width="69" height="50" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="660" y="62" width="73" height="58" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="733" y="38" width="82" height="82" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="815" y="23" width="72" height="97" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="887" y="25" width="61" height="95" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="948" y="36" width="80" height="84" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="1028" y="27" width="79" height="93" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="1107" y="45" width="62" height="75" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="1169" y="16" width="80" height="104" fill="#0a0820" stroke="#000" stroke-width="3"/><rect x="8" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="24" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="56" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="40" y="87" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="56" y="87" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="8" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="24" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="56" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="126" y="75" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="78" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="94" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="126" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="142" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="142" y="107" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="164" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="196" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="212" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="228" y="66" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="180" y="82" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="196" y="82" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="164" y="98" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="212" y="98" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="282" y="27" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="27" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="250" y="43" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="282" y="43" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="43" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="59" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="298" y="91" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="298" y="107" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="314" y="107" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="333" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="397" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="333" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="349" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="365" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="381" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="397" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="425" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="441" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="457" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="473" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="457" y="99" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="506" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="554" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="570" y="40" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="56" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="538" y="56" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="570" y="56" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="570" y="72" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="506" y="88" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="88" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="522" y="104" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="599" y="80" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="631" y="96" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="716" y="72" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="684" y="88" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="684" y="104" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="700" y="104" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="741" y="64" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="757" y="64" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="773" y="64" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="741" y="80" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="773" y="96" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="855" y="33" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="823" y="49" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="839" y="49" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="871" y="49" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="871" y="65" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="839" y="81" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="823" y="97" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="839" y="97" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="871" y="97" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="35" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="51" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="927" y="51" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="927" y="67" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="895" y="83" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="83" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="911" y="99" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="956" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="988" y="46" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="972" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1004" y="62" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="972" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1004" y="78" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="956" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1004" y="94" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="988" y="110" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1068" y="37" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1084" y="37" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1052" y="69" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1068" y="69" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1036" y="85" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1052" y="85" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1084" y="101" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="55" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1131" y="55" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1147" y="71" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="87" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1115" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1131" y="103" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="42" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1193" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1209" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1225" y="58" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="74" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1193" y="74" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1193" y="90" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1177" y="106" width="7" height="9" fill="#ffd23f" opacity=".85"/><rect x="1225" y="106" width="7" height="9" fill="#ffd23f" opacity=".85"/></svg>
+</section>
+
+</main>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var dots=document.getElementById('dots'), prog=document.getElementById('prog');
+  slides.forEach(function(s,i){
+    var a=document.createElement('a'); a.href='#'; a.title=s.getAttribute('data-title')||('Slide '+(i+1));
+    a.addEventListener('click',function(e){e.preventDefault();s.scrollIntoView();});
+    dots.appendChild(a);
+  });
+  var dotEls=[].slice.call(dots.children);
+  function cur(){var y=window.scrollY+window.innerHeight*0.4,k=0;slides.forEach(function(s,i){if(s.offsetTop<=y)k=i;});return k;}
+  function upd(){
+    var k=cur(); dotEls.forEach(function(d,i){d.classList.toggle('on',i===k)});
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    prog.style.width=(h>0?window.scrollY/h*100:0)+'%';
+  }
+  window.addEventListener('scroll',upd,{passive:true}); upd();
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.25});
+    slides.forEach(function(s){io.observe(s)});
+  }else{slides.forEach(function(s){s.classList.add('in')})}
+  document.addEventListener('keydown',function(e){
+    var t=e.target&&e.target.tagName; if(t==='INPUT'||t==='TEXTAREA'||t==='IFRAME')return;
+    var k=cur();
+    if(['ArrowDown','ArrowRight','PageDown'].indexOf(e.key)>-1){e.preventDefault();if(slides[k+1])slides[k+1].scrollIntoView();}
+    if(['ArrowUp','ArrowLeft','PageUp'].indexOf(e.key)>-1){e.preventDefault();if(slides[k-1])slides[k-1].scrollIntoView();}
+  });
+})();
+</script>
+</body>
+</html>

@@ -99,6 +99,14 @@ Report weekly, in aggregate, by Ravi Menon. Definitions use pings taken / pings 
 
 Guardrails: no rise in turn-downs, no fall in time-to-accept once measurable, no rise in uncovered callouts in any single area.
 
+Measurement plan:
+1. **Sources:** the pings, callouts and support_tickets tables in the Rook database.
+2. **Owner and cadence:** Ravi Menon, added to the weekly acceptance-rate report, plus a read at two weeks after Stage 0 ships.
+3. **Baselines:** the table above. Ravi to pull each of the four responders' own average weekly pings for 29 Jun to 9 Aug.
+4. **Decision rule (proposed):** if the four are under 10% missed and back within 20% of their own volume, Stage 1 shrinks to the views and a lighter scoring change. If not, the scoring fix becomes the top 4.3 item.
+5. **Cannot measure yet:** time-to-accept, because response time is not logged.
+6. **Targets and owners are proposals, not agreed.**
+
 ## 7. Dependencies and risks
 
 - **Supply.** Supply reads the Responder Availability Record and books maintenance into low-load windows. Any change to availability or callout load shifts Supply's scheduling with no Supply-side change. Notify before Stage 0.
